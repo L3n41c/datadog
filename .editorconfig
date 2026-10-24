@@ -1,0 +1,68 @@
+# .editorconfig — Configuration universelle pour tous les éditeurs
+# https://editorconfig.org
+
+root = true
+
+# --- Defaults pour tous les fichiers ---
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = tab
+indent_size = 4
+tab_width = 4
+
+# --- Fichiers C/C++ ---
+[*.{h,hh,hpp,hxx,c,cc,cpp,cxx,c++,C,H}]
+indent_style = tab
+indent_size = 4
+tab_width = 4
+max_line_length = 100
+
+# --- Fichiers de build CMake ---
+[{CMakeLists.txt,*.cmake}]
+indent_style = space
+indent_size = 4
+
+# --- Fichiers Meson (si jamais) ---
+[meson.build]
+indent_style = space
+indent_size = 4
+
+# --- JSON (CMakePresets, etc.) ---
+[*.json]
+indent_style = space
+indent_size = 2
+
+# --- YAML (CI, pre-commit, etc.) ---
+[*.{yml,yaml}]
+indent_style = space
+indent_size = 2
+
+# --- Markdown ---
+[*.{md,markdown}]
+trim_trailing_whitespace = false
+max_line_length = off
+
+# --- Shell ---
+[*.{sh,bash,zsh}]
+indent_style = tab
+indent_size = 4
+
+# --- Python ---
+[*.py]
+indent_style = space
+indent_size = 4
+
+# --- Fichiers de configuration divers ---
+[{Makefile,*.mk}]
+indent_style = tab
+
+[.gitignore]
+insert_final_newline = true
+
+# --- Fichiers Doxygen ---
+[{Doxyfile,Doxyfile.*}]
+indent_style = tab
+indent_size = 4

@@ -1,0 +1,90 @@
+# Doxyfile — Doxygen configuration for the datadog project
+# Theme: doxygen-awesome-css (https://github.com/jothepro/doxygen-awesome-css)
+# Generate with: cmake --build build/dev --target docs
+
+# --- Project information ---
+PROJECT_NAME           = "datadog"
+PROJECT_NUMBER         = @DATADOG_VERSION@
+PROJECT_BRIEF          = "Datadog agent with dynamic plugin architecture"
+PROJECT_LOGO           =
+OUTPUT_DIRECTORY       = docs/api
+CREATE_SUBDIRS         = NO
+ALLOW_UNICODE_NAMES    = NO
+
+# --- Output format ---
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO
+GENERATE_XML           = NO
+GENERATE_RTF           = NO
+GENERATE_MAN           = NO
+
+# --- doxygen-awesome-css theme ---
+HTML_EXTRA_STYLESHEET  = docs/doxygen-awesome.css
+HTML_EXTRA_FILES       = docs/doxygen-awesome-darkmode-toggle.js
+HTML_COLORSTYLE_HUE    = 220
+HTML_COLORSTYLE_SAT    = 100
+HTML_COLORSTYLE_GAMMA  = 80
+HTML_COLORSTYLE        = LIGHT
+HTML_DARKMODE          = YES
+
+# --- Source browsing ---
+SOURCE_BROWSER         = YES
+INLINE_SOURCES         = NO
+STRIP_CODE_COMMENTS    = YES
+REFERENCED_BY_RELATION = NO
+REFERENCES_RELATION    = NO
+
+# --- Warnings ---
+WARN_IF_UNDOCUMENTED    = YES
+WARN_IF_DOC_ERROR       = YES
+WARN_NO_MATCHED_DOC     = YES
+WARN_LOGFILE            = docs/doxygen-warnings.log
+
+# --- Input ---
+INPUT                  = include src
+FILE_PATTERNS          = *.h *.hpp *.hxx *.cpp *.cxx
+RECURSIVE              = YES
+EXCLUDE                = build
+EXCLUDE_PATTERNS       = */build/* */.git/*
+
+# --- Source browsing ---
+VERBATIM_HEADERS       = YES
+
+# --- Index ---
+ALPHABETICAL_INDEX     = YES
+COLS_IN_ALPHA_INDEX    = 5
+IGNORE_PREFIX          =
+
+# --- HTML output ---
+HTML_OUTPUT            = html
+HTML_FILE_EXTENSION    = .html
+HTML_HEADER            =
+HTML_FOOTER            =
+HTML_STYLESHEET        =
+HTML_EXTRA_STYLESHEET  = docs/doxygen-awesome.css
+HTML_DYNAMIC_MENUS     = YES
+HTML_DYNAMIC_SECTIONS  = YES
+HTML_INDEX_NUM_ENTRIES = 100
+
+# --- Search ---
+SEARCHENGINE           = YES
+SERVER_BASED_SEARCH    = NO
+EXTERNAL_SEARCH        = NO
+
+# --- Preprocessor ---
+ENABLE_PREPROCESSING   = YES
+MACRO_EXPANSION        = NO
+EXPAND_ONLY_PREDEF     = NO
+SEARCH_INCLUDES        = YES
+INCLUDE_PATH           = include build/dev/include
+INCLUDE_FILE_PATTERNS  = *.h *.hpp
+PREDEFINED             =
+EXPAND_AS_DEFINED      =
+SKIP_FUNCTION_MACROS   = YES
+
+# --- Dot graphs (requires graphviz) ---
+HAVE_DOT               = NO
+CLASS_DIAGRAMS         = YES
+HIDE_UNDOC_RELATIONS   = YES
+DOT_IMAGE_FORMAT       = svg
+INTERACTIVE_SVG        = NO

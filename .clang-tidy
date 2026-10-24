@@ -1,0 +1,135 @@
+# .clang-tidy — Configuration ultra-agressive C++20/23
+#
+# Stratégie : activer le maximum de checks via des wildcards par catégorie,
+# en commençant par désactiver tout (-*), puis en réactivant les catégories
+# pertinentes. Les checks individuels non désirés sont désactivés avec un -
+# préfixe. Cette approche garantit que les nouveaux checks ajoutés dans les
+# futures versions de clang-tidy dans les catégories activées seront
+# automatiquement pris en compte.
+#
+# Pour activer ABSOLUMENT tous les checks (y compris les nouvelles catégories),
+# remplacer la section Checks par :  Checks: "*"
+# (mais dans ce cas, les désactivations individuelles avec - ne fonctionnent
+#  pas — il faut alors les retirer ou les déplacer dans CheckOptions)
+#
+# Référence : https://clang.llvm.org/extra/clang-tidy/checks/list.html
+
+Checks: >
+  -*,
+  # --- Catégories principales : activer tous les checks de chaque catégorie ---
+  bugprone-*,
+  modernize-*,
+  performance-*,
+  readability-*,
+  portability-*,
+  misc-*,
+  clang-analyzer-*,
+  concurrency-*,
+  cppcoreguidelines-*,
+  cert-*,
+  hicpp-*,
+  abseil-*,
+  google-*,
+  llvm-*,
+  fuchsia-*,
+  # --- Désactiver les catégories non pertinentes ---
+  -android-*,
+  -zircon-*,
+  -mpi-*,
+  -openmp-*,
+  -cuda-*,
+  -hip-*,
+  -altera-*,
+  -llvm-libc-*,
+  -llvmlibc-*,
+  -objc-*,
+  -google-objc-*,
+  -abseil-android-*,
+  -abseil-fuchsia-*,
+  -abseil-google-*,
+  -abseil-upstream-*,
+  -cert-android-*,
+  -cert-fuchsia-*,
+  -hicpp-android-*,
+  -hicpp-fuchsia-*,
+  -linuxkernel-*,
+  -fuchsia-default-arguments-calls,
+  -fuchsia-default-arguments-declarations,
+  -fuchsia-header-anon-namespaces,
+  -fuchsia-multiple-inheritance,
+  -fuchsia-overloaded-operator,
+  -fuchsia-statically-constructed-objects,
+  -fuchsia-trailing-return,
+  -fuchsia-virtual-inheritance,
+  # --- Checks individuels à désactiver (trop bruyants, faux positifs, ou conflits) ---
+  -bugprone-suspicious-include,
+  -bugprone-reserved-identifier,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-exception-escape,
+  -bugprone-throwing-static-initialization,
+  -cert-err58-cpp,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -cppcoreguidelines-avoid-non-const-global-variables,
+  -google-readability-todo,
+  -google-runtime-int,
+  -hicpp-uppercase-literal-suffix,
+  -hicpp-ignored-remove-result,
+  -hicpp-use-auto,
+  -misc-include-cleaner,
+  -modernize-use-trailing-return-type,
+  -modernize-avoid-c-arrays,
+  -modernize-avoid-bind,
+  -modernize-deprecated-headers,
+  -performance-unnecessary-value-param,
+  -portability-avoid-pragma-once,
+  -readability-implicit-bool-conversion,
+  -readability-isolate-declaration,
+  -readability-named-parameter,
+  -readability-identifier-naming,
+  -readability-function-cognitive-complexity,
+  -readability-function-size,
+  -hicpp-function-size,
+  -google-readability-function-size,
+  -llvm-header-guard,
+  -llvm-include-order,
+  -concurrency-mt-unsafe,
+
+# --- Options personnalisées ---
+CheckOptions:
+  # Magic numbers : ignorer les petites valeurs courantes
+  readability-magic-numbers.IgnoredIntegerValues: "0;1;2;3;4;8;16;32;64;128;256;512;1024;2048;4096;8192;16384;32768;65536;-1;-2"
+
+  # Conventions de nommage
+  readability-identifier-naming.ClassCase: CamelCase
+  readability-identifier-naming.StructCase: CamelCase
+  readability-identifier-naming.UnionCase: CamelCase
+  readability-identifier-naming.FunctionCase: camelBack
+  readability-identifier-naming.VariableCase: camelBack
+  readability-identifier-naming.ParameterCase: camelBack
+  readability-identifier-naming.ConstantCase: UPPER_CASE
+  readability-identifier-naming.ConstantPrefix: 'k'
+  readability-identifier-naming.EnumCase: CamelCase
+  readability-identifier-naming.EnumeratorCase: UPPER_CASE
+  readability-identifier-naming.PrivateMemberCase: camelBack
+  readability-identifier-naming.PrivateMemberPrefix: 'm_'
+  readability-identifier-naming.ProtectedMemberCase: camelBack
+  readability-identifier-naming.ProtectedMemberPrefix: 'm_'
+  readability-identifier-naming.NamespaceCase: lower_case
+  readability-identifier-naming.MacroCase: UPPER_CASE
+  readability-identifier-naming.HeaderGuardCase: UPPER_CASE
+  readability-identifier-naming.GlobalVariableCase: UPPER_CASE
+  readability-identifier-naming.GlobalVariablePrefix: 'g_'
+  readability-identifier-naming.StaticVariableCase: UPPER_CASE
+  readability-identifier-naming.StaticVariablePrefix: 's_'
+  readability-identifier-naming.TypeAliasCase: CamelCase
+  readability-identifier-naming.TypedefCase: CamelCase
+
+  # Modernize
+  modernize-use-auto.MinTypeNameLength: 5
+  modernize-loop-convert.MinConfidence: safe
+
+# Tous les warnings sont traités comme des erreurs
+WarningsAsErrors: '*'
+
+# Utiliser le fichier .clang-format du projet
+FormatStyle: file
