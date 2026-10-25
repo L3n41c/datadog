@@ -79,10 +79,11 @@ cmake --preset dev -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg
 
 ## Documentation
 
-API documentation is generated with Doxygen:
+API documentation is generated with Doxygen (requires the `DATADOG_BUILD_DOCS` option):
 
 ```bash
-cmake --build build/dev --target docs
+cmake --preset dev -DDATADOG_BUILD_DOCS=ON
+cmake --build --preset dev --target docs
 ```
 
 ## License

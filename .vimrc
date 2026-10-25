@@ -24,10 +24,18 @@ set fixendofline      " automatically add final newline when missing
 " --- Trailing whitespace (matches .editorconfig trim_trailing_whitespace) ---
 autocmd BufWritePre * if &ft != 'markdown' | silent! :%s/\s\+$//e | endif
 
-" --- Clang-format integration: format on save using project .clang-format ---
+" --- Clang-format integration: format buffer on save using project .clang-format ---
+" Uses stdin/stdout (no -i) so the buffer is replaced in-place without touching disk.
+" --assume-filename tells clang-format which file it is formatting so it finds .clang-format.
 if executable('clang-format')
+    function! s:ClangFormatBuffer()
+        let l:view = winsaveview()
+        let l:filename = expand('%:p')
+        silent! execute '%!clang-format --style=file --assume-filename=' . shellescape(l:filename)
+        call winrestview(l:view)
+    endfunction
     autocmd BufWritePre *.h,*.hh,*.hpp,*.hxx,*.c,*.cc,*.cpp,*.cxx,*.c++
-        \ :silent! execute '%!clang-format --style=file -i %' | edit!
+        \ call s:ClangFormatBuffer()
 endif
 
 " --- C/C++ indentation style (matches .clang-format BreakBeforeBraces: Custom / Allman) ---

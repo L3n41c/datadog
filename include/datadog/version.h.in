@@ -21,4 +21,4 @@ inline constexpr int version_minor = @DATADOG_VERSION_MINOR@;
 /// Patch version component.
 inline constexpr int version_patch = @DATADOG_VERSION_PATCH@;
 
-} // namespace datadog
+}  // namespace datadog

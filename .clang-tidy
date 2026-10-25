@@ -12,11 +12,18 @@
 # (mais dans ce cas, les désactivations individuelles avec - ne fonctionnent
 #  pas — il faut alors les retirer ou les déplacer dans CheckOptions)
 #
+# Catégories activées : bugprone, modernize, performance, readability,
+# portability, misc, clang-analyzer, concurrency, cppcoreguidelines, cert,
+# hicpp, abseil, google, llvm, fuchsia.
+# Catégories désactivées : android, zircon, mpi, openmp, cuda, hip, altera,
+# llvm-libc, llvmlibc, objc, google-objc, abseil-android, abseil-fuchsia,
+# abseil-google, abseil-upstream, cert-android, cert-fuchsia, hicpp-android,
+# hicpp-fuchsia, linuxkernel, fuchsia-* (individuel).
+#
 # Référence : https://clang.llvm.org/extra/clang-tidy/checks/list.html
 
 Checks: >
   -*,
-  # --- Catégories principales : activer tous les checks de chaque catégorie ---
   bugprone-*,
   modernize-*,
   performance-*,
@@ -32,7 +39,6 @@ Checks: >
   google-*,
   llvm-*,
   fuchsia-*,
-  # --- Désactiver les catégories non pertinentes ---
   -android-*,
   -zircon-*,
   -mpi-*,
@@ -61,7 +67,6 @@ Checks: >
   -fuchsia-statically-constructed-objects,
   -fuchsia-trailing-return,
   -fuchsia-virtual-inheritance,
-  # --- Checks individuels à désactiver (trop bruyants, faux positifs, ou conflits) ---
   -bugprone-suspicious-include,
   -bugprone-reserved-identifier,
   -bugprone-easily-swappable-parameters,
