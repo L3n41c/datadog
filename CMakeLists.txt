@@ -58,6 +58,14 @@ if(ENABLE_COVERAGE)
     endif()
 endif()
 
+# --- Fuzzer guard: -fsanitize=fuzzer-no-link is Clang-only ---
+if(ENABLE_FUZZER AND NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    message(FATAL_ERROR
+        "ENABLE_FUZZER requires Clang (uses -fsanitize=fuzzer-no-link, "
+        "which GCC does not support). Use the 'fuzzer' CMake preset "
+        "(which selects clang++) or configure with -DCMAKE_CXX_COMPILER=clang++.")
+endif()
+
 # --- Subdirectories ---
 add_subdirectory(src)
 
