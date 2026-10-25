@@ -11,7 +11,7 @@ project(datadog
 )
 
 # --- C++ standard ---
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -74,7 +74,7 @@ add_subdirectory(src)
 # doxygen_add_docs generates its own Doxyfile from these variables.
 # Theme: doxygen-awesome-css, fetched via FetchContent at configure time.
 if(DATADOG_BUILD_DOCS)
-    find_package(Doxygen REQUIRED)
+    find_package(Doxygen REQUIRED COMPONENTS dot)
 
     # Fetch doxygen-awesome-css theme assets at configure time.
     include(FetchContent)
@@ -117,7 +117,7 @@ if(DATADOG_BUILD_DOCS)
     set(DOXYGEN_PREDEFINED "")
     set(DOXYGEN_EXPAND_AS_DEFINED "")
     set(DOXYGEN_SKIP_FUNCTION_MACROS "YES")
-    set(DOXYGEN_HAVE_DOT "NO")
+    set(DOXYGEN_HAVE_DOT "YES")
     set(DOXYGEN_CLASS_DIAGRAMS "YES")
     set(DOXYGEN_HTML_DYNAMIC_MENUS "YES")
     set(DOXYGEN_HTML_DYNAMIC_SECTIONS "YES")
