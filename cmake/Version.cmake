@@ -8,33 +8,19 @@
 
 find_package(Git REQUIRED)
 
-# Try to get a descriptive version from git
+# --tags: use all tags (not just annotated). --always: fall back to short hash
+# when no tags exist. --dirty: append "-dirty" for uncommitted changes.
 execute_process(
     COMMAND ${GIT_EXECUTABLE} describe --tags --always --dirty
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    OUTPUT_VARIABLE _git_describe
+    OUTPUT_VARIABLE DATADOG_VERSION
     OUTPUT_STRIP_TRAILING_WHITESPACE
     ERROR_QUIET
     RESULT_VARIABLE _git_describe_result
 )
 
-if(_git_describe_result EQUAL 0 AND _git_describe)
-    set(DATADOG_VERSION "${_git_describe}")
-else()
-    # Fallback: use git rev-parse for the short hash
-    execute_process(
-        COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        OUTPUT_VARIABLE _git_hash
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-        ERROR_QUIET
-        RESULT_VARIABLE _git_hash_result
-    )
-    if(_git_hash_result EQUAL 0 AND _git_hash)
-        set(DATADOG_VERSION "0.0.0-${_git_hash}")
-    else()
-        set(DATADOG_VERSION "0.0.0-unknown")
-    endif()
+if(NOT _git_describe_result EQUAL 0 OR NOT DATADOG_VERSION)
+    set(DATADOG_VERSION "v0.0.0-unknown")
 endif()
 
 # Parse version components if the version looks like vMAJOR.MINOR.PATCH[-...]
