@@ -25,13 +25,29 @@ set fixendofline      " automatically add final newline when missing
 autocmd BufWritePre * if &ft != 'markdown' | silent! :%s/\s\+$//e | endif
 
 " --- Clang-format integration: format buffer on save using project .clang-format ---
-" Uses stdin/stdout (no -i) so the buffer is replaced in-place without touching disk.
+" Uses system() to capture output and checks v:shell_error before replacing the
+" buffer, so a clang-format failure never overwrites the source with diagnostics.
 " --assume-filename tells clang-format which file it is formatting so it finds .clang-format.
 if executable('clang-format')
     function! s:ClangFormatBuffer()
-        let l:view = winsaveview()
         let l:filename = expand('%:p')
-        silent! execute '%!clang-format --style=file --assume-filename=' . shellescape(l:filename)
+        let l:input = join(getline(1, '$'), "\n") . "\n"
+        let l:output = system('clang-format --style=file --assume-filename=' . shellescape(l:filename), l:input)
+        if v:shell_error != 0
+            echohl ErrorMsg
+            echom 'clang-format failed (exit ' . v:shell_error . '): ' . l:output
+            echohl None
+            return
+        endif
+        let l:view = winsaveview()
+        let l:lines = split(l:output, "\n", 1)
+        if !empty(l:lines) && l:lines[-1] ==# ''
+            call remove(l:lines, -1)
+        endif
+        silent! keepjumps %delete _
+        if !empty(l:lines)
+            call setline(1, l:lines)
+        endif
         call winrestview(l:view)
     endfunction
     autocmd BufWritePre *.h,*.hh,*.hpp,*.hxx,*.c,*.cc,*.cpp,*.cxx,*.c++

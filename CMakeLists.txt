@@ -73,7 +73,8 @@ if(DATADOG_BUILD_DOCS)
     FetchContent_Declare(
         doxygen-awesome-css
         GIT_REPOSITORY https://github.com/jothepro/doxygen-awesome-css.git
-        GIT_TAG v2.4.1
+        # Pinned to immutable commit SHA for tag v2.4.1 (tags can be force-moved).
+        GIT_TAG 1f3620084ff75734ed192101acf40e9dff01d848
         SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/doxygen-awesome-css"
     )
     FetchContent_MakeAvailable(doxygen-awesome-css)
@@ -96,8 +97,8 @@ if(DATADOG_BUILD_DOCS)
     set(DOXYGEN_WARN_NO_MATCHED_DOC "YES")
     set(DOXYGEN_WARN_LOGFILE "${CMAKE_CURRENT_BINARY_DIR}/docs/doxygen-warnings.log")
     set(DOXYGEN_RECURSIVE "YES")
-    set(DOXYGEN_FILE_PATTERNS "*.h *.hpp *.hxx *.cpp *.cxx")
-    set(DOXYGEN_EXCLUDE_PATTERNS "*/build/* */.git/*")
+    set(DOXYGEN_FILE_PATTERNS "*.h;*.hpp;*.hxx;*.cpp;*.cxx")
+    set(DOXYGEN_EXCLUDE_PATTERNS "*/build/*;*/.git/*")
     set(DOXYGEN_ENABLE_PREPROCESSING "YES")
     set(DOXYGEN_MACRO_EXPANSION "NO")
     set(DOXYGEN_SEARCH_INCLUDES "YES")
