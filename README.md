@@ -30,7 +30,7 @@ The project consists of two executables and six dynamically-loadable plugins:
 
 - CMake 3.28+
 - Ninja
-- C++23-capable compiler (GCC 14+ or Clang 18+)
+- C++26-capable compiler (GCC 15+ or Clang 19+)
 - vcpkg (for dependency management)
 - Git (for version derivation)
 
