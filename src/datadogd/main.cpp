@@ -5,6 +5,6 @@
 #include <iostream>
 
 int main() {
-	std::cout << "Hello world!\n" << datadog::version;
+	std::cout << "Hello world!\n" << datadog::kVERSION;
 	return 0;
 }

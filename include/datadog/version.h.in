@@ -10,15 +10,15 @@ namespace datadog {
 
 /// Project version string derived from `git describe --tags --always --dirty`.
 /// Uses std::string_view (constexpr-constructible, no static initialization issues).
-inline constexpr std::string_view version = "@DATADOG_VERSION@";
+inline constexpr std::string_view kVERSION = "@DATADOG_VERSION@";
 
 /// Major version component.
-inline constexpr int version_major = @DATADOG_VERSION_MAJOR@;
+inline constexpr int kVERSION_MAJOR = @DATADOG_VERSION_MAJOR@;
 
 /// Minor version component.
-inline constexpr int version_minor = @DATADOG_VERSION_MINOR@;
+inline constexpr int kVERSION_MINOR = @DATADOG_VERSION_MINOR@;
 
 /// Patch version component.
-inline constexpr int version_patch = @DATADOG_VERSION_PATCH@;
+inline constexpr int kVERSION_PATCH = @DATADOG_VERSION_PATCH@;
 
 }  // namespace datadog

@@ -4,12 +4,12 @@
 #include <string_view>
 
 // Declare the exported symbol from the shared library.
-extern "C" const std::string_view version;
+extern "C" const std::string_view kVERSION;
 
 TEST(LogForwarderTest, VersionIsNotEmpty) {
-	EXPECT_FALSE(version.empty());
+	EXPECT_FALSE(kVERSION.empty());
 }
 
 TEST(LogForwarderTest, VersionHasContent) {
-	EXPECT_GT(version.size(), 0U);
+	EXPECT_GT(kVERSION.size(), 0U);
 }
