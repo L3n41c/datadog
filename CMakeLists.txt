@@ -40,6 +40,9 @@ option(ENABLE_COVERAGE "Enable code coverage instrumentation" OFF)
 option(ENABLE_FUZZER "Enable libFuzzer targets" OFF)
 option(DATADOG_BUILD_DOCS "Build Doxygen documentation" OFF)
 
+# --- Dependencies ---
+find_package(Boost REQUIRED)
+
 # --- Testing ---
 if(BUILD_TESTING)
     enable_testing()

@@ -1,6 +1,7 @@
 # src/plugins/host_forwarder/CMakeLists.txt
 
 add_library(host_forwarder SHARED host_forwarder.cpp)
+target_link_libraries(host_forwarder PRIVATE Boost::headers)
 
 target_include_directories(host_forwarder PRIVATE
     "${CMAKE_SOURCE_DIR}/include"

@@ -1,6 +1,7 @@
 # src/plugins/host_linux/CMakeLists.txt
 
 add_library(host_linux SHARED host_linux.cpp)
+target_link_libraries(host_linux PRIVATE Boost::headers)
 
 target_include_directories(host_linux PRIVATE
     "${CMAKE_SOURCE_DIR}/include"

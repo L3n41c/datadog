@@ -1,6 +1,7 @@
 # src/plugins/log_receiver_file/CMakeLists.txt
 
 add_library(log_receiver_file SHARED log_receiver_file.cpp)
+target_link_libraries(log_receiver_file PRIVATE Boost::headers)
 
 target_include_directories(log_receiver_file PRIVATE
     "${CMAKE_SOURCE_DIR}/include"

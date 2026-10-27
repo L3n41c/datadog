@@ -1,6 +1,7 @@
 # src/plugins/log_forwarder/CMakeLists.txt
 
 add_library(log_forwarder SHARED log_forwarder.cpp)
+target_link_libraries(log_forwarder PRIVATE Boost::headers)
 
 target_include_directories(log_forwarder PRIVATE
     "${CMAKE_SOURCE_DIR}/include"
