@@ -33,6 +33,8 @@ The project consists of two executables and six dynamically-loadable plugins:
 - C++26-capable compiler (GCC 15+ or Clang 19+)
 - vcpkg (for dependency management)
 - Git (for version derivation)
+- Doxygen (for documentation generation)
+- Graphviz / dot (required by Doxygen for diagrams)
 
 ### Quick start
 
