@@ -1,5 +1,5 @@
 # .clang-format — Style de formatage C++ consensuel
-# Basé sur LLVM avec ajustements pour la lisibilité moderne C++20/23.
+# Basé sur LLVM avec ajustements pour la lisibilité moderne C++26.
 # Compatible clang-format 16+.
 # Référence : https://clang.llvm.org/docs/ClangFormatStyleOptions.html
 

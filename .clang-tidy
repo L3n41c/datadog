@@ -1,4 +1,4 @@
-# .clang-tidy — Configuration ultra-agressive C++20/23
+# .clang-tidy — Configuration ultra-agressive C++26
 #
 # Stratégie : activer le maximum de checks via des wildcards par catégorie,
 # en commençant par désactiver tout (-*), puis en réactivant les catégories
