@@ -28,7 +28,7 @@ The project consists of two executables and six dynamically-loadable plugins:
 
 ### Prerequisites
 
-- CMake 3.28+
+- CMake 4.0+
 - Ninja
 - C++26-capable compiler (GCC 15+ or Clang 19+)
 - vcpkg (for dependency management)
