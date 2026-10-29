@@ -32,14 +32,15 @@ configure_file(
     @ONLY
 )
 
-# Build-time version header check: runs on every build, but configure_file()
-# inside the script only updates the timestamp when content changes, so
-# dependent files are recompiled only when the version actually differs.
+# Build-time version header check: runs Version.cmake in script mode on every
+# build.  configure_file() inside the script only updates the timestamp when
+# content changes, so dependent files are recompiled only when the version
+# actually differs.
 add_custom_target(version_header
     COMMAND ${CMAKE_COMMAND}
         -DSOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}
         -DBINARY_DIR=${CMAKE_CURRENT_BINARY_DIR}
-        -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/GenerateVersionHeader.cmake
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Version.cmake
     COMMENT "Checking version header"
     VERBATIM
 )
