@@ -66,3 +66,32 @@ vcpkg_installed/
 # test output & cache
 Testing/
 .cache/
+
+# Coverage reports
+*.profraw
+*.profdata
+coverage/
+coverage.info
+
+# Fuzzing artifacts
+fuzz-*.log
+crash-*
+leak-*
+oom-*
+timeout-*
+artifact_prefix-*
+
+# Doxygen output
+docs/api/
+docs/doxygen-warnings.log
+
+# IDE files
+.idea/
+.vscode/
+*.sublime-*
+*.code-workspace
+
+# Editor swap/backup
+*~
+.#*
+\#*\#
