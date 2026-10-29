@@ -22,10 +22,26 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # --- Generate version header ---
+# configure_file() at configure time creates the initial version.h (also
+# needed for IDE integration).  The version_header custom target below
+# re-checks the git state on every build and regenerates version.h if the
+# version has changed (commit, checkout, tag, or dirty state).
 configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/include/datadog/version.h.in"
     "${CMAKE_CURRENT_BINARY_DIR}/include/datadog/version.h"
     @ONLY
+)
+
+# Build-time version header check: runs on every build, but configure_file()
+# inside the script only updates the timestamp when content changes, so
+# dependent files are recompiled only when the version actually differs.
+add_custom_target(version_header
+    COMMAND ${CMAKE_COMMAND}
+        -DSOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}
+        -DBINARY_DIR=${CMAKE_CURRENT_BINARY_DIR}
+        -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/GenerateVersionHeader.cmake
+    COMMENT "Checking version header"
+    VERBATIM
 )
 
 # --- Global include directories ---
@@ -71,6 +87,27 @@ endif()
 
 # --- Subdirectories ---
 add_subdirectory(src)
+
+# --- Make all targets depend on version header regeneration ---
+add_dependencies(datadogd version_header)
+add_dependencies(datadogctl version_header)
+add_dependencies(host_forwarder version_header)
+add_dependencies(host_linux version_header)
+add_dependencies(log_forwarder version_header)
+add_dependencies(log_receiver_journald version_header)
+add_dependencies(log_receiver_syslog version_header)
+add_dependencies(log_receiver_file version_header)
+
+if(BUILD_TESTING)
+    add_dependencies(test_datadogd version_header)
+    add_dependencies(test_datadogctl version_header)
+    add_dependencies(test_host_forwarder version_header)
+    add_dependencies(test_host_linux version_header)
+    add_dependencies(test_log_forwarder version_header)
+    add_dependencies(test_log_receiver_journald version_header)
+    add_dependencies(test_log_receiver_syslog version_header)
+    add_dependencies(test_log_receiver_file version_header)
+endif()
 
 # --- Doxygen documentation ---
 # Uses doxygen_add_docs with DOXYGEN_* variables (CMake FindDoxygen module).
