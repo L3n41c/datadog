@@ -58,6 +58,10 @@ jobs:
 
       - name: Set up vcpkg (manifest mode + GHA binary caching)
         uses: lukka/run-vcpkg@v11.6
+        with:
+          # Run `vcpkg install` now; cache the vcpkg tool and enable the GHA binary cache.
+          runVcpkgInstall: true
+          doNotCache: false
 
       - name: Configure preset '${{ matrix.preset }}'
         run: cmake --preset ${{ matrix.preset }} -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake

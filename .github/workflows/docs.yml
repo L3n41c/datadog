@@ -36,6 +36,9 @@ jobs:
 
       - name: Set up vcpkg (Boost is required at configure time)
         uses: lukka/run-vcpkg@v11.6
+        with:
+          runVcpkgInstall: true
+          doNotCache: false
 
       - name: Configure with documentation enabled
         run: cmake --preset release -DDATADOG_BUILD_DOCS=ON -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake

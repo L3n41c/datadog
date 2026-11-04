@@ -47,6 +47,9 @@ jobs:
         uses: lukka/get-cmake@v4.4.5
       - name: Set up vcpkg (for Boost/GTest include paths in compile_commands.json)
         uses: lukka/run-vcpkg@v11.6
+        with:
+          runVcpkgInstall: true
+          doNotCache: false
       - name: Configure (produces compile_commands.json for clang-tidy)
         run: cmake --preset dev -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
       - name: Run clang-tidy (config has WarningsAsErrors '*')
