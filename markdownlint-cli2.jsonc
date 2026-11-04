@@ -5,6 +5,8 @@
   "MD013": false,
   // Inline HTML is allowed (used sparingly in documentation).
   "MD033": false,
-  // Tables only need a consistent column style, not pixel-perfect pipe alignment.
-  "MD060": { "style": "consistent" }
+  // MD060 (table-column-style, new in markdownlint 0.42) only supports
+  // aligned/any/compact/tight; the README tables are maintained by hand, so
+  // the rule is disabled rather than reformatting the tables.
+  "MD060": false
 }

@@ -11,8 +11,8 @@ on:
 
 permissions:
   contents: read
-  # actions: write is needed by actions/upload-artifact.
-  actions: write
+  # Artifact upload/download use the runtime token, not GITHUB_TOKEN permissions.
+  actions: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

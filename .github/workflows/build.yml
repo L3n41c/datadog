@@ -11,8 +11,9 @@ on:
 
 permissions:
   contents: read
-  # actions: write is needed by actions/upload-artifact and the vcpkg binary cache.
-  actions: write
+  # Artifacts and the Actions cache use the runtime token (ACTIONS_RUNTIME_TOKEN),
+  # which is not governed by this block; actions: read is enough for cache lookups.
+  actions: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -64,7 +65,10 @@ jobs:
           doNotCache: false
 
       - name: Configure preset '${{ matrix.preset }}'
-        run: cmake --preset ${{ matrix.preset }} -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
+        # -DCMAKE_CXX_COMPILER overrides the fuzzer preset's unversioned `clang++`
+        # (the runner default is clang-21) so the job really uses the matrix compiler,
+        # matching the compiler vcpkg used (CXX env).
+        run: cmake --preset ${{ matrix.preset }} -DCMAKE_CXX_COMPILER=${{ matrix.compiler.cxx }} -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
 
       - name: Build preset '${{ matrix.preset }}'
         run: cmake --build --preset ${{ matrix.preset }}
