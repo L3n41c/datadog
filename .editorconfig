@@ -31,9 +31,24 @@ indent_style = space
 indent_size = 4
 
 # --- JSON (CMakePresets, etc.) ---
-[*.json]
+[*.{json,jsonc}]
 indent_style = space
 indent_size = 2
+
+# --- Fichiers de configuration clang (format YAML) ---
+[.{clang-format,clang-tidy}]
+indent_style = space
+indent_size = 2
+
+# --- Emacs Lisp ---
+[*.el]
+indent_style = space
+indent_size = 2
+
+# --- Licences et textes longs (alignement au premier caractère) ---
+[{LICENSE,COPYING,NOTICE}]
+indent_style = space
+indent_size = 1
 
 # --- YAML (CI, pre-commit, etc.) ---
 [*.{yml,yaml}]

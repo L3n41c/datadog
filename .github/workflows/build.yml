@@ -1,0 +1,85 @@
+name: Build and Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  # actions: write is needed by actions/upload-artifact and the vcpkg binary cache.
+  actions: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: ${{ matrix.compiler.name }} / ${{ matrix.preset }}
+    runs-on: ubuntu-26.04
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler:
+          - name: gcc
+            cc: gcc-15
+            cxx: g++-15
+          - name: clang
+            cc: clang-20
+            cxx: clang++-20
+        preset:
+          - dev
+          - dev-tsan
+          - release
+          - coverage
+          - fuzzer
+        exclude:
+          # The fuzzer preset requires clang++ (-fsanitize=fuzzer-no-link is Clang-only).
+          - compiler:
+              name: gcc
+            preset: fuzzer
+    env:
+      CC: ${{ matrix.compiler.cc }}
+      CXX: ${{ matrix.compiler.cxx }}
+    steps:
+      - name: Checkout (full history for git describe)
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Install CMake
+        uses: lukka/get-cmake@v4.4.5
+
+      - name: Set up vcpkg (manifest mode + GHA binary caching)
+        uses: lukka/run-vcpkg@v11.6
+
+      - name: Configure preset '${{ matrix.preset }}'
+        run: cmake --preset ${{ matrix.preset }} -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
+
+      - name: Build preset '${{ matrix.preset }}'
+        run: cmake --build --preset ${{ matrix.preset }}
+
+      # dev, dev-tsan and coverage have a matching test preset.
+      - name: Test preset '${{ matrix.preset }}'
+        if: matrix.preset == 'dev' || matrix.preset == 'dev-tsan' || matrix.preset == 'coverage'
+        run: ctest --preset ${{ matrix.preset }}
+
+      # The fuzzer preset has no test preset; run ctest directly on its build dir.
+      - name: Test fuzzer build
+        if: matrix.preset == 'fuzzer'
+        run: ctest --test-dir build/fuzzer --output-on-failure --no-tests-action=error
+
+      - name: Upload test logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-logs-${{ matrix.compiler.name }}-${{ matrix.preset }}
+          path: build/${{ matrix.preset }}/Testing
+          retention-days: 7
+          if-no-files-found: ignore

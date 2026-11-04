@@ -1,0 +1,8 @@
+{
+  // markdownlint configuration for this repository.
+  "default": true,
+  // Long lines are fine in Markdown (tables, links); .editorconfig sets no max_line_length for md.
+  "MD013": false,
+  // Inline HTML is allowed (used sparingly in documentation).
+  "MD033": false
+}
