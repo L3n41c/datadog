@@ -51,7 +51,9 @@ jobs:
           runVcpkgInstall: true
           doNotCache: false
       - name: Configure (produces compile_commands.json for clang-tidy)
-        run: cmake --preset dev -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
+        # CMAKE_CXX_SCAN_FOR_MODULES=OFF: CMake 4.x scans for C++ modules by default and
+        # injects -fmodule-mapper=@<file>.modmap flags that clang-tidy cannot resolve.
+        run: cmake --preset dev -DCMAKE_CXX_SCAN_FOR_MODULES=OFF -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
       - name: Run clang-tidy (config has WarningsAsErrors '*')
         run: |
           find src -type f \( -name '*.cpp' -o -name '*.cxx' -o -name '*.cc' -o -name '*.h' -o -name '*.hpp' \) -print0 \

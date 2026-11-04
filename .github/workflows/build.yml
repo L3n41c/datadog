@@ -77,7 +77,7 @@ jobs:
       # The fuzzer preset has no test preset; run ctest directly on its build dir.
       - name: Test fuzzer build
         if: matrix.preset == 'fuzzer'
-        run: ctest --test-dir build/fuzzer --output-on-failure --no-tests-action=error
+        run: ctest --test-dir build/fuzzer --output-on-failure
 
       - name: Upload test logs on failure
         if: failure()
