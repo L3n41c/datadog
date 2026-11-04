@@ -104,5 +104,7 @@ jobs:
       - name: Lint Markdown files
         uses: DavidAnson/markdownlint-cli2-action@v25
         with:
-          config: .github/.markdownlint-cli2.jsonc
+          # Absolute, non-hidden path: markdownlint-cli2 resolves --config as a glob,
+          # which skips dotfiles/dot-directories (e.g. .github/...).
+          config: ${{ github.workspace }}/markdownlint-cli2.jsonc
           globs: '**/*.md'
