@@ -47,7 +47,7 @@ jobs:
           languages: cpp
 
       - name: Configure
-        run: cmake --preset release -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
+        run: cmake --preset release -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
 
       - name: Build (traced by CodeQL)
         run: cmake --build --preset release

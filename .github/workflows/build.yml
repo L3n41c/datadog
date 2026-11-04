@@ -64,7 +64,7 @@ jobs:
           doNotCache: false
 
       - name: Configure preset '${{ matrix.preset }}'
-        run: cmake --preset ${{ matrix.preset }} -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
+        run: cmake --preset ${{ matrix.preset }} -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
 
       - name: Build preset '${{ matrix.preset }}'
         run: cmake --build --preset ${{ matrix.preset }}

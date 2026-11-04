@@ -41,7 +41,7 @@ jobs:
           doNotCache: false
 
       - name: Configure with documentation enabled
-        run: cmake --preset release -DDATADOG_BUILD_DOCS=ON -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
+        run: cmake --preset release -DDATADOG_BUILD_DOCS=ON -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
 
       - name: Generate documentation (target 'docs')
         run: cmake --build --preset release --target docs
