@@ -77,15 +77,50 @@ jobs:
       - name: Build preset '${{ matrix.preset }}'
         run: cmake --build --preset ${{ matrix.preset }}
 
+      - name: Install Datadog CI CLI
+        if: matrix.preset != 'release'
+        # An installation failure must not prevent the tests from running.
+        # The upload step will surface it separately if credentials are available.
+        continue-on-error: true
+        run: npm install -g @datadog/datadog-ci
+
       # dev, dev-tsan and coverage have a matching test preset.
       - name: Test preset '${{ matrix.preset }}'
+        id: test
         if: matrix.preset == 'dev' || matrix.preset == 'dev-tsan' || matrix.preset == 'coverage'
-        run: ctest --preset ${{ matrix.preset }}
+        run: ctest --preset ${{ matrix.preset }} --output-junit "${{ github.workspace }}/build/${{ matrix.preset }}/junit.xml"
 
       # The fuzzer preset has no test preset; run ctest directly on its build dir.
       - name: Test fuzzer build
+        id: test_fuzzer
         if: matrix.preset == 'fuzzer'
-        run: ctest --test-dir build/fuzzer --output-on-failure
+        run: ctest --test-dir build/fuzzer --output-on-failure --no-tests=error --output-junit "${{ github.workspace }}/build/fuzzer/junit.xml"
+
+      - name: Upload JUnit report to Datadog
+        if: >-
+          !cancelled() &&
+          (steps.test.outcome == 'success' || steps.test.outcome == 'failure' ||
+           steps.test_fuzzer.outcome == 'success' || steps.test_fuzzer.outcome == 'failure')
+        env:
+          DD_API_KEY: ${{ secrets.DD_API_KEY }}
+          DD_SITE: ${{ vars.DD_SITE }}
+          DD_ENV: ci
+          DD_TAGS: "test.configuration:${{ matrix.compiler.name }}-${{ matrix.preset }}"
+          JUNIT_REPORT: ${{ github.workspace }}/build/${{ matrix.preset }}/junit.xml
+        run: |
+          if [ -z "$DD_API_KEY" ]; then
+            echo "::notice::Datadog upload skipped: DD_API_KEY is unavailable; ingestion is unverified."
+            exit 0
+          fi
+          if [ -z "$DD_SITE" ]; then
+            echo "::error::Datadog upload failed: the DD_SITE Actions variable is unavailable."
+            exit 1
+          fi
+          if [ ! -s "$JUNIT_REPORT" ]; then
+            echo "::error::Datadog upload failed: no non-empty JUnit report was produced."
+            exit 1
+          fi
+          datadog-ci junit upload --service datadog "$JUNIT_REPORT"
 
       - name: Upload test logs on failure
         if: failure()
