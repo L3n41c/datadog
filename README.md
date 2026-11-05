@@ -85,6 +85,24 @@ are skipped for fork pull requests, which do not receive the API key.
 After a successful CI run, view the results under **Software Delivery > Code Coverage**
 in Datadog. The repository must be connected through Datadog's source code integration.
 
+### Datadog test reporting
+
+The Build and Test GitHub Actions workflow generates a JUnit report for each test-running
+compiler/preset combination and uploads it to Datadog using the `datadog-ci` CLI, including
+when tests fail. Reports use service `datadog`, environment `ci`, and a `test.configuration`
+tag identifying the compiler and preset. The release preset does not run tests or upload reports.
+
+Configure the repository's GitHub Actions secret `DD_API_KEY` with a Datadog API key and
+the Actions variable `DD_SITE` with your Datadog site (for this project, `datadoghq.eu`).
+Both must be available to the build job. If using environment-scoped secrets or variables,
+the job must reference that GitHub environment. Uploads are explicitly skipped when the API
+key is unavailable, such as on pull requests from forks; tests still run normally.
+
+[JUnit XML reporting](https://docs.datadoghq.com/tests/setup/junit_xml/)
+provides test results without native Test Impact Analysis or automatic retries.
+Confirm ingestion after a CI run in the
+[Test Optimization Explorer](https://app.datadoghq.eu/ci/test/runs?query=@git.repository.name:l3n41c/datadog).
+
 ## Code style
 
 - Formatting: `clang-format` (see `.clang-format`)
