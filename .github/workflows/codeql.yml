@@ -25,8 +25,9 @@ jobs:
     runs-on: ubuntu-26.04
     timeout-minutes: 90
     env:
-      CC: gcc-15
-      CXX: g++-15
+      # Unversioned names: ubuntu-26.04 defaults to gcc 15 (C++26-capable).
+      CC: gcc
+      CXX: g++
     steps:
       - uses: actions/checkout@v7
         with:

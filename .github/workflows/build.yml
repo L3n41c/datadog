@@ -27,13 +27,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # Unversioned compiler names: on ubuntu-26.04 the defaults are gcc 15 and
+        # clang 21, which satisfy the C++26 requirement (GCC >= 15, Clang >= 19).
+        # They track the runner image default, so bumping runs-on is enough.
+        # Note: Dependabot only updates 'uses:' action refs, never these strings.
         compiler:
           - name: gcc
-            cc: gcc-15
-            cxx: g++-15
+            cc: gcc
+            cxx: g++
           - name: clang
-            cc: clang-20
-            cxx: clang++-20
+            cc: clang
+            cxx: clang++
         preset:
           - dev
           - dev-tsan

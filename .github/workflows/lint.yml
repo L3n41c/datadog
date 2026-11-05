@@ -38,8 +38,9 @@ jobs:
     runs-on: ubuntu-26.04
     timeout-minutes: 90
     env:
-      CC: clang-22
-      CXX: clang++-22
+      # Unversioned names: ubuntu-26.04 defaults to clang 21 (C++26-capable).
+      CC: clang
+      CXX: clang++
     steps:
       - uses: actions/checkout@v7
         with:
@@ -55,6 +56,9 @@ jobs:
         # CMAKE_CXX_SCAN_FOR_MODULES=OFF: CMake 4.x scans for C++ modules by default and
         # injects -fmodule-mapper=@<file>.modmap flags that clang-tidy cannot resolve.
         run: cmake --preset dev -DCMAKE_CXX_SCAN_FOR_MODULES=OFF -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
+      # clang-tidy-22 = newest clang-tidy on the ubuntu-26.04 image (the .clang-tidy
+      # config targets recent checks); bump together with runs-on. Not a 'uses:'
+      # ref, so Dependabot does not manage it.
       - name: Run clang-tidy (config has WarningsAsErrors '*')
         run: |
           find src -type f \( -name '*.cpp' -o -name '*.cxx' -o -name '*.cc' -o -name '*.h' -o -name '*.hpp' \) -print0 \
@@ -98,8 +102,8 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
-      - name: Install cmakelang
-        run: python -m pip install "cmakelang[YAML]==0.6.13"
+      - name: Install cmakelang (pinned in requirements-lint.txt, updated by Dependabot)
+        run: python -m pip install -r .github/requirements-lint.txt
       - name: Lint CMake files
         run: git ls-files 'CMakeLists.txt' '*.cmake' | xargs cmake-lint -c .cmake-format.yaml
 
