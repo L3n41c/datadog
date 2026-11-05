@@ -103,10 +103,9 @@ jobs:
             --cobertura build/coverage/coverage.xml build/coverage
 
       - name: Upload coverage reports to Datadog
-        # Fork PRs and Dependabot do not receive the repository's API key.
+        # Fork PRs do not receive the repository's API key.
         if: >-
           matrix.preset == 'coverage' && matrix.compiler.name == 'gcc' &&
-          github.actor != 'dependabot[bot]' &&
           (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
         uses: DataDog/coverage-upload-github-action@v1
         with:
