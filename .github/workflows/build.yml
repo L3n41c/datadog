@@ -87,6 +87,32 @@ jobs:
         if: matrix.preset == 'fuzzer'
         run: ctest --test-dir build/fuzzer --output-on-failure
 
+      # Generate one report from GCC's gcov data; Clang uses a different format.
+      - name: Set up Python for coverage reporting
+        if: matrix.preset == 'coverage' && matrix.compiler.name == 'gcc'
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.x'
+
+      - name: Generate Cobertura coverage report
+        if: matrix.preset == 'coverage' && matrix.compiler.name == 'gcc'
+        run: |
+          python -m pip install gcovr==8.3
+          gcovr --root . --filter src/ --filter include/ \
+            --exclude '(^|.*/)test_[^/]*\.cpp$' \
+            --cobertura build/coverage/coverage.xml build/coverage
+
+      - name: Upload coverage reports to Datadog
+        # Fork PRs and Dependabot do not receive the repository's API key.
+        if: >-
+          matrix.preset == 'coverage' && matrix.compiler.name == 'gcc' &&
+          github.actor != 'dependabot[bot]' &&
+          (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        uses: DataDog/coverage-upload-github-action@v1
+        with:
+          api_key: ${{ secrets.DD_API_KEY }}
+          site: ${{ vars.DD_SITE }}
+
       - name: Upload test logs on failure
         if: failure()
         uses: actions/upload-artifact@v7
