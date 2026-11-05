@@ -75,10 +75,9 @@ cmake --preset dev -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg
 
 ### Datadog Code Coverage
 
-The `coverage` jobs in GitHub Actions generate a Cobertura XML report with gcovr
-for GCC and an LCOV report with llvm-profdata and llvm-cov for Clang, then upload
-each report to Datadog. The reports cover project sources and headers, excluding
-test files. Configure the repository's Actions secret `DD_API_KEY` and
+The GCC `coverage` job in GitHub Actions generates a Cobertura XML report with
+gcovr and uploads it to Datadog. The report covers project sources and headers,
+excluding test files. Configure the repository's Actions secret `DD_API_KEY` and
 Actions variable `DD_SITE` (for example, `datadoghq.eu`). Also configure `DD_API_KEY`
 as a Dependabot secret to enable uploads from Dependabot pull requests. Uploads
 are skipped for fork pull requests, which do not receive the API key.

@@ -80,10 +80,6 @@ jobs:
       # dev, dev-tsan and coverage have a matching test preset.
       - name: Test preset '${{ matrix.preset }}'
         if: matrix.preset == 'dev' || matrix.preset == 'dev-tsan' || matrix.preset == 'coverage'
-        env:
-          # Clang creates the directory and a profile per module/process, so
-          # separate GoogleTest invocations and shared libraries cannot overwrite it.
-          LLVM_PROFILE_FILE: ${{ github.workspace }}/build/${{ matrix.preset }}/profiles/%m-%p.profraw
         run: ctest --preset ${{ matrix.preset }}
 
       # The fuzzer preset has no test preset; run ctest directly on its build dir.
@@ -91,6 +87,7 @@ jobs:
         if: matrix.preset == 'fuzzer'
         run: ctest --test-dir build/fuzzer --output-on-failure
 
+      # Generate one report from GCC's gcov data; Clang uses a different format.
       - name: Set up Python for coverage reporting
         if: matrix.preset == 'coverage' && matrix.compiler.name == 'gcc'
         uses: actions/setup-python@v7
@@ -105,30 +102,10 @@ jobs:
             --exclude '(^|.*/)test_[^/]*\.cpp$' \
             --cobertura build/coverage/coverage.xml build/coverage
 
-      - name: Generate LCOV coverage report
-        if: matrix.preset == 'coverage' && matrix.compiler.name == 'clang'
-        run: |
-          # Use the LLVM tools installed alongside the selected Clang compiler.
-          llvm_bin="$(dirname "$(readlink -f "$(command -v "$CXX")")")"
-          "$llvm_bin/llvm-profdata" merge -sparse build/coverage/profiles/*.profraw \
-            -o build/coverage/coverage.profdata
-
-          # Include every executable and plugin, including code not exercised by tests.
-          objects=()
-          while IFS= read -r -d '' object; do
-            objects+=(-object "$object")
-          done < <(find build/coverage/src -type f \
-            \( -name 'test_*' -executable -o -name datadogctl -o -name '*.so' \) -print0)
-          "$llvm_bin/llvm-cov" export build/coverage/src/datadogd/datadogd -format=lcov \
-            -instr-profile=build/coverage/coverage.profdata "${objects[@]}" \
-            -ignore-filename-regex='(^|/)test_[^/]*\.cpp$' \
-            "$GITHUB_WORKSPACE/src" "$GITHUB_WORKSPACE/include" \
-            > build/coverage/coverage.info
-
       - name: Upload coverage reports to Datadog
         # Fork PRs do not receive the repository's API key.
         if: >-
-          matrix.preset == 'coverage' &&
+          matrix.preset == 'coverage' && matrix.compiler.name == 'gcc' &&
           (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
         uses: DataDog/coverage-upload-github-action@v1
         with:
