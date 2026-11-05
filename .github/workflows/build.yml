@@ -1,0 +1,97 @@
+name: Build and Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  # Artifacts and the Actions cache use the runtime token (ACTIONS_RUNTIME_TOKEN),
+  # which is not governed by this block; actions: read is enough for cache lookups.
+  actions: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: ${{ matrix.compiler.name }} / ${{ matrix.preset }}
+    runs-on: ubuntu-26.04
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        # Unversioned compiler names: on ubuntu-26.04 the defaults are gcc 15 and
+        # clang 21, which satisfy the C++26 requirement (GCC >= 15, Clang >= 19).
+        # They track the runner image default, so bumping runs-on is enough.
+        # Note: Dependabot only updates 'uses:' action refs, never these strings.
+        compiler:
+          - name: gcc
+            cc: gcc
+            cxx: g++
+          - name: clang
+            cc: clang
+            cxx: clang++
+        preset:
+          - dev
+          - dev-tsan
+          - release
+          - coverage
+          - fuzzer
+        exclude:
+          # The fuzzer preset requires clang++ (-fsanitize=fuzzer-no-link is Clang-only).
+          - compiler:
+              name: gcc
+            preset: fuzzer
+    env:
+      CC: ${{ matrix.compiler.cc }}
+      CXX: ${{ matrix.compiler.cxx }}
+    steps:
+      - name: Checkout (full history for git describe)
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Install CMake
+        uses: lukka/get-cmake@v4.4.5
+
+      - name: Set up vcpkg (manifest mode + GHA binary caching)
+        uses: lukka/run-vcpkg@v11.6
+        with:
+          # Run `vcpkg install` now; cache the vcpkg tool and enable the GHA binary cache.
+          runVcpkgInstall: true
+          doNotCache: false
+
+      - name: Configure preset '${{ matrix.preset }}'
+        # -DCMAKE_CXX_COMPILER overrides the fuzzer preset's unversioned `clang++`
+        # (the runner default is clang-21) so the job really uses the matrix compiler,
+        # matching the compiler vcpkg used (CXX env).
+        run: cmake --preset ${{ matrix.preset }} -DCMAKE_CXX_COMPILER=${{ matrix.compiler.cxx }} -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
+
+      - name: Build preset '${{ matrix.preset }}'
+        run: cmake --build --preset ${{ matrix.preset }}
+
+      # dev, dev-tsan and coverage have a matching test preset.
+      - name: Test preset '${{ matrix.preset }}'
+        if: matrix.preset == 'dev' || matrix.preset == 'dev-tsan' || matrix.preset == 'coverage'
+        run: ctest --preset ${{ matrix.preset }}
+
+      # The fuzzer preset has no test preset; run ctest directly on its build dir.
+      - name: Test fuzzer build
+        if: matrix.preset == 'fuzzer'
+        run: ctest --test-dir build/fuzzer --output-on-failure
+
+      - name: Upload test logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-logs-${{ matrix.compiler.name }}-${{ matrix.preset }}
+          path: build/${{ matrix.preset }}/Testing
+          retention-days: 7
+          if-no-files-found: ignore

@@ -1,0 +1,19 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    labels:
+      - dependencies
+      - ci
+  # Python lint tools pinned in requirements-lint.txt.
+  # Note: Dependabot only manages 'uses:' action refs for github-actions;
+  # runs-on labels and compiler names in workflows are NOT covered.
+  - package-ecosystem: pip
+    directory: /.github
+    schedule:
+      interval: weekly
+    labels:
+      - dependencies
+      - ci

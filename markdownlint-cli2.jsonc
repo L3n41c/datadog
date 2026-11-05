@@ -1,0 +1,16 @@
+{
+  // markdownlint-cli2 configuration for this repository.
+  // Rules are nested under "config" (the markdownlint-cli2 config-file schema);
+  // verified locally: `markdownlint-cli2 --config <this file>` applies them.
+  "config": {
+    "default": true,
+    // Long lines are fine in Markdown (tables, links); .editorconfig sets no max_line_length for md.
+    "MD013": false,
+    // Inline HTML is allowed (used sparingly in documentation).
+    "MD033": false,
+    // MD060 (table-column-style, new in markdownlint 0.42) only supports
+    // aligned/any/compact/tight; the README tables are maintained by hand, so
+    // the rule is disabled rather than reformatting the tables.
+    "MD060": false
+  }
+}

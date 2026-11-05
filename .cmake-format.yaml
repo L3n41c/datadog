@@ -1,0 +1,6 @@
+# cmakelang configuration, used by `cmake-lint` in CI (lint.yml).
+# Note: cmake-lint rule C0301 ("line too long") reads format.line_width.
+format:
+  # Matches .editorconfig (CMake files: 4-space indent) and .clang-format ColumnLimit.
+  line_width: 100
+  tab_size: 4

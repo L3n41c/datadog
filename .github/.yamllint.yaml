@@ -1,0 +1,12 @@
+---
+extends: default
+
+rules:
+  # GitHub Actions uses `on:` as a trigger key, which YAML 1.1 parses as boolean.
+  truthy: disable
+  document-start: disable
+  line-length:
+    max: 200
+  indentation:
+    spaces: 2
+    indent-sequences: consistent
