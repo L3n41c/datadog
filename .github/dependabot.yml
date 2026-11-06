@@ -1,19 +1,32 @@
 version: 2
 updates:
-  - package-ecosystem: github-actions
-    directory: /
+  # GitHub Actions referenced via `uses:` in .github/workflows/*.yml.
+  # For the github-actions ecosystem, directory must be "/" (it scans
+  # .github/workflows automatically). Note: Dependabot only rewrites `uses:`
+  # refs here — never `runs-on:` labels or compiler names.
+  - package-ecosystem: "github-actions"
+    directory: "/"
     schedule:
-      interval: weekly
-    labels:
-      - dependencies
-      - ci
-  # Python lint tools pinned in requirements-lint.txt.
-  # Note: Dependabot only manages 'uses:' action refs for github-actions;
-  # runs-on labels and compiler names in workflows are NOT covered.
-  - package-ecosystem: pip
-    directory: /.github
+      interval: "daily"
+
+  # Python lint tools pinned in .github/requirements-lint.txt
+  - package-ecosystem: "pip"
+    directory: "/.github"
     schedule:
-      interval: weekly
-    labels:
-      - dependencies
-      - ci
+      interval: "daily"
+
+  # `specs` git submodule. The manifest is .gitmodules at the repo root, so
+  # directory must be "/" (not "/specs"). Dependabot moves the pinned SHA
+  # forward to the latest commit of the submodule's configured branch; there
+  # is no semver comparison for submodules.
+  - package-ecosystem: "gitsubmodule"
+    directory: "/"
+    schedule:
+      interval: "daily"
+
+  # C++ dependencies: updates builtin-baseline (and version constraints in
+  # overrides) in vcpkg.json.
+  - package-ecosystem: "vcpkg"
+    directory: "/"
+    schedule:
+      interval: "daily"
