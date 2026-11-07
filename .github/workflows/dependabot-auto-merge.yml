@@ -46,17 +46,10 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_URL: ${{ github.event.pull_request.html_url }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          approved=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/reviews" \
-            --jq '[.[] | select(.state == "APPROVED" and .user.login == "github-actions[bot]")] | length')
-          if [ "$approved" -gt 0 ]; then
-            echo "already approved by github-actions[bot]"
-          else
-            gh pr review --approve "$PR_URL"
-          fi
+          gh pr review --approve "$PR_URL"
 
-      - name: Enable auto-merge (squash)
+      - name: Enable auto-merge
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_URL: ${{ github.event.pull_request.html_url }}
@@ -64,8 +57,4 @@ jobs:
           DEPS: ${{ steps.metadata.outputs.dependency-names }}
         run: |
           echo "update-type=${UPDATE_TYPE:-unknown} dependencies=${DEPS:-unknown}"
-          # The ruleset on `main` now declares the CI jobs as required status
-          # checks (strict_required_status_checks_policy: false), so `--auto`
-          # merges only once they are all green and every other rule
-          # (signatures, resolved review threads, ...) is satisfied.
-          gh pr merge --auto --squash "$PR_URL"
+          gh pr merge --auto --merge "$PR_URL"
