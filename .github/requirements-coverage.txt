@@ -1,0 +1,3 @@
+# Python tools used by the build workflow for coverage reports (build.yml).
+# Pinned so Dependabot (pip ecosystem) can update them in lockstep.
+gcovr==8.8

@@ -9,7 +9,7 @@ updates:
     schedule:
       interval: "daily"
 
-  # Python lint tools pinned in .github/requirements-lint.txt
+  # Python tools pinned in .github/requirements-*.txt (lint and coverage).
   - package-ecosystem: "pip"
     directory: "/.github"
     schedule:

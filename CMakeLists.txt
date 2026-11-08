@@ -89,25 +89,42 @@ endif()
 # --- Subdirectories ---
 add_subdirectory(src)
 
-# --- Make all targets depend on version header regeneration ---
-add_dependencies(datadogd version_header)
-add_dependencies(datadogctl version_header)
-add_dependencies(host_forwarder version_header)
-add_dependencies(host_linux version_header)
-add_dependencies(log_forwarder version_header)
-add_dependencies(log_receiver_journald version_header)
-add_dependencies(log_receiver_syslog version_header)
-add_dependencies(log_receiver_file version_header)
-
+# --- All runtime and test targets ---
+# Used below for the version_header dependency and by the 'coverage' target
+# (cmake/Coverage.cmake) as llvm-cov objects.
+set(DATADOG_ALL_TARGETS
+    datadogd
+    datadogctl
+    host_forwarder
+    host_linux
+    log_forwarder
+    log_receiver_journald
+    log_receiver_syslog
+    log_receiver_file
+)
 if(BUILD_TESTING)
-    add_dependencies(test_datadogd version_header)
-    add_dependencies(test_datadogctl version_header)
-    add_dependencies(test_host_forwarder version_header)
-    add_dependencies(test_host_linux version_header)
-    add_dependencies(test_log_forwarder version_header)
-    add_dependencies(test_log_receiver_journald version_header)
-    add_dependencies(test_log_receiver_syslog version_header)
-    add_dependencies(test_log_receiver_file version_header)
+    list(APPEND DATADOG_ALL_TARGETS
+        test_datadogd
+        test_datadogctl
+        test_host_forwarder
+        test_host_linux
+        test_log_forwarder
+        test_log_receiver_journald
+        test_log_receiver_syslog
+        test_log_receiver_file
+    )
+endif()
+
+# --- Make all targets depend on version header regeneration ---
+foreach(target IN LISTS DATADOG_ALL_TARGETS)
+    add_dependencies(${target} version_header)
+endforeach()
+
+# --- Coverage report target ---
+# Defines the 'coverage' custom target (gcovr for GCC, llvm-cov for Clang).
+# Included after add_subdirectory(src) so all instrumented targets exist.
+if(ENABLE_COVERAGE)
+    include(Coverage)
 endif()
 
 # --- Doxygen documentation ---

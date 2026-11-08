@@ -73,11 +73,35 @@ To use vcpkg with CMake, set the toolchain file:
 cmake --preset dev -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
 ```
 
+### Code coverage
+
+The `coverage` preset instruments the build (`--coverage` with GCC,
+`-fprofile-instr-generate -fcoverage-mapping` with Clang). The `coverage` CMake
+target (`cmake/Coverage.cmake`) is self-contained: it resets stale coverage data
+from previous runs, runs the test suite (JUnit report written to the build
+directory), then writes the coverage report — identically locally and in CI:
+
+```bash
+cmake --preset coverage
+cmake --build --preset coverage
+cmake --build --preset coverage --target coverage  # runs the tests + writes the report
+```
+
+The tool is chosen per compiler: **gcovr** (Cobertura XML) for GCC,
+**llvm-profdata + llvm-cov** (LCOV) for Clang. The report is written to the
+build directory (`build/coverage/coverage.xml` or `build/coverage/coverage.lcov`)
+and covers project sources and headers, excluding test files. Both formats are
+accepted by the Datadog coverage upload. On the GCC leg, gcovr must be
+installed (`python -m pip install -r .github/requirements-coverage.txt`); on the
+Clang leg, `llvm-profdata`/`llvm-cov` ship with LLVM. Clang profiles are written
+with a `%p` (pid) pattern so concurrent test processes do not overwrite each
+other.
+
 ### Datadog Code Coverage
 
-The GCC `coverage` job in GitHub Actions generates a Cobertura XML report with
-gcovr and uploads it to Datadog. The report covers project sources and headers,
-excluding test files. Configure the repository's Actions secret `DD_API_KEY` and
+The `coverage` jobs in GitHub Actions (GCC and Clang) generate the report via
+the same `coverage` CMake target and upload it to Datadog (Cobertura XML for GCC,
+LCOV for Clang). Configure the repository's Actions secret `DD_API_KEY` and
 Actions variable `DD_SITE` (for example, `datadoghq.eu`). Also configure `DD_API_KEY`
 as a Dependabot secret to enable uploads from Dependabot pull requests. Uploads
 are skipped for fork pull requests, which do not receive the API key.
