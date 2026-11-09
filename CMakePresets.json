@@ -84,7 +84,9 @@
     { "name": "dev-tsan", "configurePreset": "dev-tsan" },
     { "name": "release", "configurePreset": "release" },
     { "name": "coverage", "configurePreset": "coverage" },
-    { "name": "fuzzer", "configurePreset": "fuzzer" }
+    { "name": "fuzzer", "configurePreset": "fuzzer" },
+    { "name": "coverage-reset", "configurePreset": "coverage", "targets": ["coverage_reset"] },
+    { "name": "coverage-report", "configurePreset": "coverage", "targets": ["coverage_report"] }
   ],
   "testPresets": [
     {
@@ -102,6 +104,9 @@
     {
       "name": "coverage",
       "configurePreset": "coverage",
+      "environment": {
+        "LLVM_PROFILE_FILE": "${sourceDir}/build/${presetName}/profraw/%p.profraw"
+      },
       "output": { "outputOnFailure": true, "outputJUnitFile": "${sourceDir}/build/${presetName}/junit.xml" },
       "execution": { "noTestsAction": "error", "stopOnFailure": false }
     },
@@ -138,10 +143,13 @@
     },
     {
       "name": "coverage",
-      "description": "Configure and build only: coverage tests must run inside the self-contained 'coverage' target (cmake --build --preset coverage --target coverage), which resets stale coverage data first and writes the report.",
+      "description": "Configure + build + reset stale coverage data + run tests (JUnit report) + generate the coverage report.",
       "steps": [
         { "type": "configure", "name": "coverage" },
-        { "type": "build", "name": "coverage" }
+        { "type": "build", "name": "coverage" },
+        { "type": "build", "name": "coverage-reset" },
+        { "type": "test", "name": "coverage" },
+        { "type": "build", "name": "coverage-report" }
       ]
     },
     {

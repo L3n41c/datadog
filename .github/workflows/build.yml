@@ -89,10 +89,12 @@ jobs:
         run: npm install -g @datadog/datadog-ci
 
       # One command runs the whole workflow preset of the same name
-      # (CMakePresets.json): configure + build + test. release has no test
-      # step (BUILD_TESTING=OFF); the coverage workflow preset stops at the
-      # build and its tests run in the 'coverage' target below. Test presets
-      # write the JUnit report themselves (outputJUnitFile ->
+      # (CMakePresets.json): configure + build + test. The coverage workflow
+      # preset additionally runs the coverage_reset and coverage_report
+      # targets around the test step (through the coverage-reset /
+      # coverage-report build presets, since workflow steps cannot select
+      # targets directly). release has no test step (BUILD_TESTING=OFF).
+      # Test presets write the JUnit report themselves (outputJUnitFile ->
       # build/<preset>/junit.xml) and carry --output-on-failure/--no-tests=error.
       # cmake --workflow takes no -D options: on first configure the compiler
       # comes from the CC/CXX env (set at job level, matching the compiler
@@ -104,24 +106,16 @@ jobs:
           CMAKE_TOOLCHAIN_FILE: ${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake
         run: cmake --workflow --preset ${{ matrix.preset }}
 
-      # The 'coverage' CMake target (cmake/Coverage.cmake + CoverageRun.cmake) is
-      # self-contained: it resets stale coverage data, runs the tests (JUnit
-      # report written to build/coverage/junit.xml), then generates the report:
-      # gcovr -> Cobertura XML on the GCC leg, llvm-cov -> LCOV on the Clang leg.
-      - name: Run tests and generate coverage report (CMake 'coverage' target)
-        id: coverage
-        if: matrix.preset == 'coverage'
-        run: cmake --build --preset coverage --target coverage
-
-      # After the workflow/coverage steps so that their step ids are defined
-      # (actionlint only allows referencing step ids declared earlier in the job).
+      # After the workflow step so that steps.workflow is defined (actionlint
+      # only allows referencing step ids declared earlier in the job).
       # release produces no JUnit report (no test step), hence the preset check.
+      # ctest writes the JUnit report even when tests fail, and cmake
+      # --workflow then exits non-zero, so upload on success OR failure.
       - name: Upload JUnit report to Datadog
         if: >-
           matrix.preset != 'release' &&
           !cancelled() &&
-          (steps.workflow.outcome == 'success' || steps.workflow.outcome == 'failure' ||
-           steps.coverage.outcome == 'success' || steps.coverage.outcome == 'failure')
+          (steps.workflow.outcome == 'success' || steps.workflow.outcome == 'failure')
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
           DD_SITE: ${{ vars.DD_SITE }}
@@ -144,15 +138,16 @@ jobs:
           datadog-ci junit upload --service datadog "$JUNIT_REPORT"
 
       - name: Upload coverage report to Datadog
-        # Fork PRs do not receive the repository's API key. The coverage target
-        # generates the report even when tests fail (it exits non-zero after),
-        # so upload on steps.coverage success OR failure; a plain if would
-        # implicitly require success() and skip the upload on test failure.
+        # Fork PRs do not receive the repository's API key. cmake --workflow
+        # stops at the first failing step, and the coverage report is the last
+        # step of the coverage workflow preset, so the report exists only when
+        # the whole workflow succeeded (a plain if would be equivalent here,
+        # but steps.workflow.outcome == 'success' states it explicitly).
         if: >-
           matrix.preset == 'coverage' &&
           (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) &&
           !cancelled() &&
-          (steps.coverage.outcome == 'success' || steps.coverage.outcome == 'failure')
+          steps.workflow.outcome == 'success'
         uses: DataDog/coverage-upload-github-action@v1
         with:
           api_key: ${{ secrets.DD_API_KEY }}

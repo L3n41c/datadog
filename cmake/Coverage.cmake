@@ -1,14 +1,12 @@
 # cmake/Coverage.cmake
 #
-# Defines the 'coverage' custom target for builds configured with
-# -DENABLE_COVERAGE=ON (the 'coverage' configure preset). The target is
-# self-contained: it resets stale coverage data from previous runs, runs the
-# test suite (JUnit report written to the build dir), then writes the coverage
-# report that CI uploads to Datadog:
+# Defines the 'coverage_reset' and 'coverage_report' custom targets for builds
+# configured with -DENABLE_COVERAGE=ON (the 'coverage' configure preset).
+# Test execution and report generation are separate steps so that the
+# 'coverage' workflow preset can run them in order around the test step:
 #
-#   cmake --preset coverage
-#   cmake --build --preset coverage
-#   cmake --build --preset coverage --target coverage
+#   cmake --workflow --preset coverage
+#   # = configure + build + coverage_reset + test + coverage_report
 #
 # One report file per toolchain, both accepted by
 # DataDog/coverage-upload-github-action:
@@ -16,8 +14,9 @@
 #   Clang (-fprofile-instr-generate -fcoverage-mapping -> .profraw):
 #         llvm-profdata + llvm-cov -> LCOV (coverage.lcov)
 #
-# The actual work happens in CoverageRun.cmake (script mode) because the
-# coverage data files must be discovered at build time, after the tests ran.
+# The actual work happens in CoverageRun.cmake (script mode, -DMODE=reset or
+# -DMODE=report) because the coverage data files must be discovered at build
+# time, after the tests ran.
 #
 # Included from the top-level CMakeLists.txt after all targets are defined
 # (expects DATADOG_ALL_TARGETS to be set there).
@@ -63,23 +62,43 @@ foreach(target IN LISTS DATADOG_ALL_TARGETS)
     endif()
 endforeach()
 
-add_custom_target(coverage
-    COMMAND ${CMAKE_COMMAND}
-        "-DCOVERAGE_DIR=${CMAKE_BINARY_DIR}"
-        "-DSOURCE_DIR=${CMAKE_SOURCE_DIR}"
-        "-DBINARY_DIR=${CMAKE_BINARY_DIR}"
-        "-DCMAKE_CTEST_COMMAND=${CMAKE_CTEST_COMMAND}"
-        "-DCOMPILER_ID=${CMAKE_CXX_COMPILER_ID}"
-        "-DGCOVR_EXECUTABLE=${GCOVR_EXECUTABLE}"
-        "-DLLVM_PROFDATA_EXECUTABLE=${LLVM_PROFDATA_EXECUTABLE}"
-        "-DLLVM_COV_EXECUTABLE=${LLVM_COV_EXECUTABLE}"
-        "-DOBJECTS=${COVERAGE_OBJECTS}"
+# Shared -D arguments for both script modes. OBJECTS is deliberately NOT part
+# of this list: it is a semicolon-separated list, and embedding it in a list
+# variable would re-split it into separate arguments when the list is expanded
+# unquoted in COMMAND, leaving -DOBJECTS with only the first binary. It is
+# passed as a quoted argument at each COMMAND site instead, so it stays a
+# single argument and -D receives the full list.
+set(COVERAGE_RUN_ARGS
+    "-DCOVERAGE_DIR=${CMAKE_BINARY_DIR}"
+    "-DSOURCE_DIR=${CMAKE_SOURCE_DIR}"
+    "-DBINARY_DIR=${CMAKE_BINARY_DIR}"
+    "-DCOMPILER_ID=${CMAKE_CXX_COMPILER_ID}"
+    "-DGCOVR_EXECUTABLE=${GCOVR_EXECUTABLE}"
+    "-DLLVM_PROFDATA_EXECUTABLE=${LLVM_PROFDATA_EXECUTABLE}"
+    "-DLLVM_COV_EXECUTABLE=${LLVM_COV_EXECUTABLE}"
+)
+
+# Reset stale coverage data from previous runs in the same build tree
+# (profiles/counters accumulate across runs and would skew the report).
+add_custom_target(coverage_reset
+    COMMAND ${CMAKE_COMMAND} ${COVERAGE_RUN_ARGS}
+        -DMODE=reset
         -P "${CMAKE_CURRENT_LIST_DIR}/CoverageRun.cmake"
-    COMMENT "Running tests and generating coverage report in ${CMAKE_BINARY_DIR}"
+    COMMENT "Resetting stale coverage data in ${CMAKE_BINARY_DIR}"
     VERBATIM
 )
 
-# The target runs ctest itself, so it must not run against missing or stale
-# binaries: building 'coverage' alone (cmake --build --preset coverage
-# --target coverage) first builds all instrumented targets.
-add_dependencies(coverage ${DATADOG_ALL_TARGETS})
+# Generate the coverage report from the data written by the test run.
+add_custom_target(coverage_report
+    COMMAND ${CMAKE_COMMAND} ${COVERAGE_RUN_ARGS}
+        "-DOBJECTS=${COVERAGE_OBJECTS}"
+        -DMODE=report
+        -P "${CMAKE_CURRENT_LIST_DIR}/CoverageRun.cmake"
+    COMMENT "Generating coverage report in ${CMAKE_BINARY_DIR}"
+    VERBATIM
+)
+
+# Building 'coverage_report' alone (cmake --build --preset coverage --target
+# coverage_report) must not run against missing binaries (llvm-cov reads the
+# instrumented executables): build all targets first.
+add_dependencies(coverage_report ${DATADOG_ALL_TARGETS})

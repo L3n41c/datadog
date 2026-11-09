@@ -65,9 +65,9 @@ cmake --workflow --preset dev
 Every preset also has a matching `workflow` preset, so
 `cmake --workflow --preset <name>` runs configure + build + test in one
 command (`release` has no test step since it builds with `BUILD_TESTING=OFF`;
-`coverage` stops after the build because its tests must run inside the
-`coverage` target, see below). Test presets write a JUnit report to
-`build/<preset>/junit.xml`.
+`coverage` additionally resets stale coverage data before the tests and
+generates the coverage report after them, see below). Test presets write a
+JUnit report to `build/<preset>/junit.xml`.
 
 ### Dependency management
 
@@ -83,15 +83,13 @@ cmake --preset dev -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg
 ### Code coverage
 
 The `coverage` preset instruments the build (`--coverage` with GCC,
-`-fprofile-instr-generate -fcoverage-mapping` with Clang). The `coverage` CMake
-target (`cmake/Coverage.cmake`) is self-contained: it resets stale coverage data
-from previous runs, runs the test suite (JUnit report written to the build
-directory), then writes the coverage report — identically locally and in CI:
+`-fprofile-instr-generate -fcoverage-mapping` with Clang). One command runs
+the whole coverage flow — configure, build, reset stale coverage data, run
+the tests (JUnit report written to the build directory), then write the
+coverage report — identically locally and in CI:
 
 ```bash
-cmake --preset coverage
-cmake --build --preset coverage
-cmake --build --preset coverage --target coverage  # runs the tests + writes the report
+cmake --workflow --preset coverage
 ```
 
 The tool is chosen per compiler: **gcovr** (Cobertura XML) for GCC,
