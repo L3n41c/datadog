@@ -97,19 +97,15 @@ jobs:
         continue-on-error: true
         run: npm install -g @datadog/datadog-ci
 
-      # dev and dev-tsan have a matching test preset. The coverage preset runs
-      # its tests inside the 'coverage' CMake target (see below), which resets
+      # dev, dev-tsan and fuzzer have a matching test preset; release does not
+      # (it builds with BUILD_TESTING=OFF). The test presets carry
+      # --output-on-failure and --no-tests=error. The coverage preset runs its
+      # tests inside the 'coverage' CMake target (see below), which resets
       # stale coverage data first and writes the same JUnit report path.
       - name: Test preset '${{ matrix.preset }}'
         id: test
-        if: matrix.preset == 'dev' || matrix.preset == 'dev-tsan'
+        if: matrix.preset == 'dev' || matrix.preset == 'dev-tsan' || matrix.preset == 'fuzzer'
         run: ctest --preset ${{ matrix.preset }} --output-junit "${{ github.workspace }}/build/${{ matrix.preset }}/junit.xml"
-
-      # The fuzzer preset has no test preset; run ctest directly on its build dir.
-      - name: Test fuzzer build
-        id: test_fuzzer
-        if: matrix.preset == 'fuzzer'
-        run: ctest --test-dir build/fuzzer --output-on-failure --no-tests=error --output-junit "${{ github.workspace }}/build/fuzzer/junit.xml"
 
       # The 'coverage' CMake target (cmake/Coverage.cmake + CoverageRun.cmake) is
       # self-contained: it resets stale coverage data, runs the tests (JUnit
@@ -126,7 +122,6 @@ jobs:
         if: >-
           !cancelled() &&
           (steps.test.outcome == 'success' || steps.test.outcome == 'failure' ||
-           steps.test_fuzzer.outcome == 'success' || steps.test_fuzzer.outcome == 'failure' ||
            steps.coverage.outcome == 'success' || steps.coverage.outcome == 'failure')
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
