@@ -1,49 +1,36 @@
 # cmake/CoverageRun.cmake
 #
-# Script mode (-P), invoked by the 'coverage' custom target (Coverage.cmake):
-#   1. reset stale coverage data from previous runs in the same build tree,
-#   2. run the test suite (JUnit report written to the build dir),
-#   3. generate the coverage report uploaded to Datadog:
-#      GCC -> gcovr Cobertura XML; Clang -> llvm-profdata + llvm-cov LCOV.
-#
-# -D variables set by the custom target: COVERAGE_DIR, SOURCE_DIR, BINARY_DIR,
-# CMAKE_CTEST_COMMAND, COMPILER_ID, GCOVR_EXECUTABLE, LLVM_PROFDATA_EXECUTABLE,
-# LLVM_COV_EXECUTABLE, OBJECTS (list of instrumented binaries).
+# Script mode (-P), invoked by the coverage_reset / coverage_report targets
+# (cmake/Coverage.cmake) with -DMODE=reset|report. The tests themselves run
+# via the 'coverage' test preset; this script only resets stale coverage data
+# (reset) or writes the report from the data the tests produced (report):
+# GCC -> gcovr Cobertura XML, Clang -> llvm-profdata + llvm-cov LCOV.
 
-# --- 1. reset stale coverage data (profiles/counters accumulate across runs) ---
-if(COMPILER_ID MATCHES "Clang")
-    file(REMOVE_RECURSE "${COVERAGE_DIR}/profraw")
-    file(MAKE_DIRECTORY "${COVERAGE_DIR}/profraw")
-else()
-    # GLOB_RECURSE roots the traversal at the directory part of the pattern,
-    # so glob from BINARY_DIR itself to also catch nested target dirs like
-    # build/coverage/src/datadogd/CMakeFiles/.../*.gcda.
-    file(GLOB_RECURSE stale_gcda "${BINARY_DIR}/*.gcda")
-    file(REMOVE ${stale_gcda})
+if(NOT DEFINED MODE)
+    message(FATAL_ERROR "CoverageRun.cmake: -DMODE=reset|report is required.")
 endif()
 
-# --- 2. run the tests ---
-set(ctest_cmd
-    ${CMAKE_CTEST_COMMAND} --test-dir "${BINARY_DIR}"
-    --output-on-failure --no-tests=error
-    --output-junit "${BINARY_DIR}/junit.xml")
-if(COMPILER_ID MATCHES "Clang")
-    # %p: one profile per test process, so concurrent tests do not overwrite
-    # each other's .profraw.
-    execute_process(
-        COMMAND ${CMAKE_COMMAND} -E env
-            "LLVM_PROFILE_FILE=${COVERAGE_DIR}/profraw/%p.profraw"
-            ${ctest_cmd}
-        RESULT_VARIABLE ctest_result)
-else()
-    execute_process(COMMAND ${ctest_cmd} RESULT_VARIABLE ctest_result)
+if(MODE STREQUAL "reset")
+    if(COMPILER_ID MATCHES "Clang")
+        file(REMOVE_RECURSE "${COVERAGE_DIR}/profraw")
+        file(MAKE_DIRECTORY "${COVERAGE_DIR}/profraw")
+    else()
+        # GLOB_RECURSE roots at the pattern's directory part: glob from
+        # BINARY_DIR itself to also catch nested target dirs.
+        file(GLOB_RECURSE stale_gcda "${BINARY_DIR}/*.gcda")
+        file(REMOVE ${stale_gcda})
+    endif()
+    return()
 endif()
 
-# --- 3. generate the report ---
+if(NOT MODE STREQUAL "report")
+    message(FATAL_ERROR "CoverageRun.cmake: unknown MODE '${MODE}' (expected reset|report).")
+endif()
+
+# --- generate the report from the data written by the test run ---
 if(COMPILER_ID MATCHES "GNU")
-    # gcovr --filter values are regexes matched against file paths: escape the
-    # checkout path, or a checkout containing regex metacharacters (e.g.
-    # /tmp/datadog+checkout) would match nothing and yield an empty report.
+    # --filter values are regexes: escape SOURCE_DIR, or a checkout path with
+    # regex metacharacters would match nothing and yield an empty report.
     string(REGEX REPLACE "([][\\^$.|?*+()\\\\])" "\\\\\\1" escaped_source_dir "${SOURCE_DIR}")
     execute_process(
         COMMAND ${GCOVR_EXECUTABLE}
@@ -67,18 +54,16 @@ elseif(COMPILER_ID MATCHES "Clang")
             -o "${COVERAGE_DIR}/coverage.profdata"
         COMMAND_ERROR_IS_FATAL ANY)
 
-    # llvm-cov takes a single binary as positional BIN; every additional binary
-    # must be passed with -object, otherwise it is treated as a source filter.
+    # Every binary after the first must be passed with -object; a positional
+    # extra would be treated as a source filter.
     set(llvm_cov_objects)
     foreach(obj IN LISTS OBJECTS)
         list(APPEND llvm_cov_objects -object "${obj}")
     endforeach()
 
-    # Deny-list anchored so it can never match the checkout path itself: the
-    # build dir via its escaped absolute path (also drops vcpkg_installed and
-    # generated headers), specific external roots (/usr/include, /usr/lib,
-    # ...), and test files. Bare "/build/" or "/usr/" alternatives would
-    # silently empty the report for checkouts under such a path component.
+    # Anchored deny-list: escaped absolute build dir (also drops vcpkg_installed
+    # and generated headers) plus specific external roots. Bare "/build/"-style
+    # alternatives could match the checkout path itself and empty the report.
     string(REGEX REPLACE "([][\\^$.|?*+()\\\\])" "\\\\\\1" escaped_binary_dir "${BINARY_DIR}")
     set(ignore_alternatives
         "${escaped_binary_dir}/"
@@ -102,10 +87,4 @@ elseif(COMPILER_ID MATCHES "Clang")
             ${llvm_cov_objects}
         OUTPUT_FILE "${COVERAGE_DIR}/coverage.lcov"
         COMMAND_ERROR_IS_FATAL ANY)
-endif()
-
-# The report is still generated when tests fail (the JUnit report is written
-# either way), but the target must fail so CI does not go green.
-if(NOT ctest_result EQUAL 0)
-    message(FATAL_ERROR "Tests failed (ctest exit code ${ctest_result}); coverage report was still generated.")
 endif()

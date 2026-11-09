@@ -62,6 +62,13 @@ cmake --workflow --preset dev
 | `coverage`   | Debug build with code coverage instrumentation (llvm-cov / gcov) |
 | `fuzzer`     | Build with libFuzzer for fuzz testing |
 
+Every preset also has a matching `workflow` preset, so
+`cmake --workflow --preset <name>` runs configure + build + test in one
+command (`release` has no test step since it builds with `BUILD_TESTING=OFF`;
+`coverage` additionally resets stale coverage data before the tests and
+generates the coverage report after them, see below). Test presets write a
+JUnit report to `build/<preset>/junit.xml`.
+
 ### Dependency management
 
 Dependencies are managed via [vcpkg](https://vcpkg.io) in manifest mode.
@@ -73,18 +80,23 @@ To use vcpkg with CMake, set the toolchain file:
 cmake --preset dev -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
 ```
 
+`cmake --workflow` takes no `-D` options; export the toolchain file as an
+environment variable instead (honored on first configure):
+
+```bash
+export CMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
+```
+
 ### Code coverage
 
 The `coverage` preset instruments the build (`--coverage` with GCC,
-`-fprofile-instr-generate -fcoverage-mapping` with Clang). The `coverage` CMake
-target (`cmake/Coverage.cmake`) is self-contained: it resets stale coverage data
-from previous runs, runs the test suite (JUnit report written to the build
-directory), then writes the coverage report — identically locally and in CI:
+`-fprofile-instr-generate -fcoverage-mapping` with Clang). One command runs
+the whole coverage flow — configure, build, reset stale coverage data, run
+the tests (JUnit report written to the build directory), then write the
+coverage report — identically locally and in CI:
 
 ```bash
-cmake --preset coverage
-cmake --build --preset coverage
-cmake --build --preset coverage --target coverage  # runs the tests + writes the report
+cmake --workflow --preset coverage
 ```
 
 The tool is chosen per compiler: **gcovr** (Cobertura XML) for GCC,
@@ -100,8 +112,9 @@ other.
 ### Datadog Code Coverage
 
 The `coverage` jobs in GitHub Actions (GCC and Clang) generate the report via
-the same `coverage` CMake target and upload it to Datadog (Cobertura XML for GCC,
-LCOV for Clang). Configure the repository's Actions secret `DD_API_KEY` and
+the same `cmake --workflow --preset coverage` flow as locally (the
+`coverage_reset` and `coverage_report` CMake targets around the test step) and
+upload it to Datadog (Cobertura XML for GCC, LCOV for Clang). Configure the repository's Actions secret `DD_API_KEY` and
 Actions variable `DD_SITE` (for example, `datadoghq.eu`). Also configure `DD_API_KEY`
 as a Dependabot secret to enable uploads from Dependabot pull requests. Uploads
 are skipped for fork pull requests, which do not receive the API key.
