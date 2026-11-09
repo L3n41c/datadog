@@ -80,6 +80,13 @@ To use vcpkg with CMake, set the toolchain file:
 cmake --preset dev -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
 ```
 
+`cmake --workflow` takes no `-D` options; export the toolchain file as an
+environment variable instead (honored on first configure):
+
+```bash
+export CMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
+```
+
 ### Code coverage
 
 The `coverage` preset instruments the build (`--coverage` with GCC,
@@ -105,8 +112,9 @@ other.
 ### Datadog Code Coverage
 
 The `coverage` jobs in GitHub Actions (GCC and Clang) generate the report via
-the same `coverage` CMake target and upload it to Datadog (Cobertura XML for GCC,
-LCOV for Clang). Configure the repository's Actions secret `DD_API_KEY` and
+the same `cmake --workflow --preset coverage` flow as locally (the
+`coverage_reset` and `coverage_report` CMake targets around the test step) and
+upload it to Datadog (Cobertura XML for GCC, LCOV for Clang). Configure the repository's Actions secret `DD_API_KEY` and
 Actions variable `DD_SITE` (for example, `datadoghq.eu`). Also configure `DD_API_KEY`
 as a Dependabot secret to enable uploads from Dependabot pull requests. Uploads
 are skipped for fork pull requests, which do not receive the API key.

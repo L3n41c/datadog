@@ -11,8 +11,7 @@ on:
 
 permissions:
   contents: read
-  # Artifacts and the Actions cache use the runtime token (ACTIONS_RUNTIME_TOKEN),
-  # which is not governed by this block; actions: read is enough for cache lookups.
+  # Artifacts and the Actions cache use the runtime token, not GITHUB_TOKEN scopes.
   actions: read
 
 concurrency:
@@ -27,10 +26,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Unversioned compiler names: on ubuntu-26.04 the defaults are gcc 15 and
-        # clang 21, which satisfy the C++26 requirement (GCC >= 15, Clang >= 19).
-        # They track the runner image default, so bumping runs-on is enough.
-        # Note: Dependabot only updates 'uses:' action refs, never these strings.
+        # Unversioned names track the ubuntu-26.04 defaults (gcc 15 / clang 21,
+        # C++26-capable). Dependabot only rewrites 'uses:' refs, never these.
         compiler:
           - name: gcc
             cc: gcc
@@ -64,13 +61,12 @@ jobs:
       - name: Set up vcpkg (manifest mode + GHA binary caching)
         uses: lukka/run-vcpkg@v11.6
         with:
-          # Run `vcpkg install` now; cache the vcpkg tool and enable the GHA binary cache.
+          # Install the dependencies now and enable the GHA binary cache.
           runVcpkgInstall: true
           doNotCache: false
 
-      # gcovr is required by the 'coverage' CMake target at configure time
-      # (find_program check in cmake/Coverage.cmake), so install it before
-      # configuring on the GCC coverage leg.
+      # gcovr is required at configure time (find_program in cmake/Coverage.cmake),
+      # so install it before configuring the GCC coverage leg.
       - name: Set up Python for gcovr
         if: matrix.preset == 'coverage' && matrix.compiler.name == 'gcc'
         uses: actions/setup-python@v7
@@ -83,34 +79,26 @@ jobs:
 
       - name: Install Datadog CI CLI
         if: matrix.preset != 'release'
-        # An installation failure must not prevent the tests from running.
-        # The upload step will surface it separately if credentials are available.
+        # A missing CLI must not fail the job; the upload step reports it.
         continue-on-error: true
         run: npm install -g @datadog/datadog-ci
 
-      # One command runs the whole workflow preset of the same name
-      # (CMakePresets.json): configure + build + test. The coverage workflow
-      # preset additionally runs the coverage_reset and coverage_report
-      # targets around the test step (through the coverage-reset /
-      # coverage-report build presets, since workflow steps cannot select
-      # targets directly). release has no test step (BUILD_TESTING=OFF).
-      # Test presets write the JUnit report themselves (outputJUnitFile ->
-      # build/<preset>/junit.xml) and carry --output-on-failure/--no-tests=error.
-      # cmake --workflow takes no -D options: on first configure the compiler
-      # comes from the CC/CXX env (set at job level, matching the compiler
-      # vcpkg used; the fuzzer preset pins clang++ itself, consistent with its
-      # clang-only matrix leg) and the toolchain file from CMAKE_TOOLCHAIN_FILE.
+      # One command per matrix leg: the workflow preset of the same name runs
+      # configure + build + test (coverage additionally runs the coverage_reset
+      # and coverage_report targets around the test step, via the coverage-reset
+      # / coverage-report build presets). release has no test step
+      # (BUILD_TESTING=OFF). cmake --workflow takes no -D options, so on first
+      # configure the compiler comes from the CC/CXX env and the toolchain file
+      # from CMAKE_TOOLCHAIN_FILE.
       - name: Run workflow preset '${{ matrix.preset }}'
         id: workflow
         env:
           CMAKE_TOOLCHAIN_FILE: ${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake
         run: cmake --workflow --preset ${{ matrix.preset }}
 
-      # After the workflow step so that steps.workflow is defined (actionlint
-      # only allows referencing step ids declared earlier in the job).
-      # release produces no JUnit report (no test step), hence the preset check.
-      # ctest writes the JUnit report even when tests fail, and cmake
-      # --workflow then exits non-zero, so upload on success OR failure.
+      # steps.<id> must be declared earlier in the job (actionlint). release
+      # produces no JUnit report (no test step). ctest writes the JUnit report
+      # even when tests fail, so upload on success OR failure.
       - name: Upload JUnit report to Datadog
         if: >-
           matrix.preset != 'release' &&
@@ -139,10 +127,8 @@ jobs:
 
       - name: Upload coverage report to Datadog
         # Fork PRs do not receive the repository's API key. cmake --workflow
-        # stops at the first failing step, and the coverage report is the last
-        # step of the coverage workflow preset, so the report exists only when
-        # the whole workflow succeeded (a plain if would be equivalent here,
-        # but steps.workflow.outcome == 'success' states it explicitly).
+        # stops at the first failing step, so the report exists only when the
+        # whole workflow succeeded.
         if: >-
           matrix.preset == 'coverage' &&
           (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) &&
