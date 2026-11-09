@@ -81,15 +81,6 @@ jobs:
         if: matrix.preset == 'coverage' && matrix.compiler.name == 'gcc'
         run: python -m pip install -r .github/requirements-coverage.txt
 
-      - name: Configure preset '${{ matrix.preset }}'
-        # -DCMAKE_CXX_COMPILER overrides the fuzzer preset's unversioned `clang++`
-        # (the runner default is clang-21) so the job really uses the matrix compiler,
-        # matching the compiler vcpkg used (CXX env).
-        run: cmake --preset ${{ matrix.preset }} -DCMAKE_CXX_COMPILER=${{ matrix.compiler.cxx }} -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
-
-      - name: Build preset '${{ matrix.preset }}'
-        run: cmake --build --preset ${{ matrix.preset }}
-
       - name: Install Datadog CI CLI
         if: matrix.preset != 'release'
         # An installation failure must not prevent the tests from running.
@@ -97,15 +88,21 @@ jobs:
         continue-on-error: true
         run: npm install -g @datadog/datadog-ci
 
-      # dev, dev-tsan and fuzzer have a matching test preset; release does not
-      # (it builds with BUILD_TESTING=OFF). The test presets carry
-      # --output-on-failure and --no-tests=error. The coverage preset runs its
-      # tests inside the 'coverage' CMake target (see below), which resets
-      # stale coverage data first and writes the same JUnit report path.
-      - name: Test preset '${{ matrix.preset }}'
-        id: test
-        if: matrix.preset == 'dev' || matrix.preset == 'dev-tsan' || matrix.preset == 'fuzzer'
-        run: ctest --preset ${{ matrix.preset }} --output-junit "${{ github.workspace }}/build/${{ matrix.preset }}/junit.xml"
+      # One command runs the whole workflow preset of the same name
+      # (CMakePresets.json): configure + build + test. release has no test
+      # step (BUILD_TESTING=OFF); the coverage workflow preset stops at the
+      # build and its tests run in the 'coverage' target below. Test presets
+      # write the JUnit report themselves (outputJUnitFile ->
+      # build/<preset>/junit.xml) and carry --output-on-failure/--no-tests=error.
+      # cmake --workflow takes no -D options: on first configure the compiler
+      # comes from the CC/CXX env (set at job level, matching the compiler
+      # vcpkg used; the fuzzer preset pins clang++ itself, consistent with its
+      # clang-only matrix leg) and the toolchain file from CMAKE_TOOLCHAIN_FILE.
+      - name: Run workflow preset '${{ matrix.preset }}'
+        id: workflow
+        env:
+          CMAKE_TOOLCHAIN_FILE: ${{ env.VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake
+        run: cmake --workflow --preset ${{ matrix.preset }}
 
       # The 'coverage' CMake target (cmake/Coverage.cmake + CoverageRun.cmake) is
       # self-contained: it resets stale coverage data, runs the tests (JUnit
@@ -116,12 +113,14 @@ jobs:
         if: matrix.preset == 'coverage'
         run: cmake --build --preset coverage --target coverage
 
-      # After the coverage step so that steps.coverage is defined (actionlint
-      # only allows referencing step ids declared earlier in the job).
+      # After the workflow/coverage steps so that their step ids are defined
+      # (actionlint only allows referencing step ids declared earlier in the job).
+      # release produces no JUnit report (no test step), hence the preset check.
       - name: Upload JUnit report to Datadog
         if: >-
+          matrix.preset != 'release' &&
           !cancelled() &&
-          (steps.test.outcome == 'success' || steps.test.outcome == 'failure' ||
+          (steps.workflow.outcome == 'success' || steps.workflow.outcome == 'failure' ||
            steps.coverage.outcome == 'success' || steps.coverage.outcome == 'failure')
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}

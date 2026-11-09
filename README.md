@@ -62,6 +62,13 @@ cmake --workflow --preset dev
 | `coverage`   | Debug build with code coverage instrumentation (llvm-cov / gcov) |
 | `fuzzer`     | Build with libFuzzer for fuzz testing |
 
+Every preset also has a matching `workflow` preset, so
+`cmake --workflow --preset <name>` runs configure + build + test in one
+command (`release` has no test step since it builds with `BUILD_TESTING=OFF`;
+`coverage` stops after the build because its tests must run inside the
+`coverage` target, see below). Test presets write a JUnit report to
+`build/<preset>/junit.xml`.
+
 ### Dependency management
 
 Dependencies are managed via [vcpkg](https://vcpkg.io) in manifest mode.

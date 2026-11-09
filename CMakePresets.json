@@ -90,25 +90,25 @@
     {
       "name": "dev",
       "configurePreset": "dev",
-      "output": { "outputOnFailure": true },
+      "output": { "outputOnFailure": true, "outputJUnitFile": "${sourceDir}/build/${presetName}/junit.xml" },
       "execution": { "noTestsAction": "error", "stopOnFailure": false }
     },
     {
       "name": "dev-tsan",
       "configurePreset": "dev-tsan",
-      "output": { "outputOnFailure": true },
+      "output": { "outputOnFailure": true, "outputJUnitFile": "${sourceDir}/build/${presetName}/junit.xml" },
       "execution": { "noTestsAction": "error", "stopOnFailure": false }
     },
     {
       "name": "coverage",
       "configurePreset": "coverage",
-      "output": { "outputOnFailure": true },
+      "output": { "outputOnFailure": true, "outputJUnitFile": "${sourceDir}/build/${presetName}/junit.xml" },
       "execution": { "noTestsAction": "error", "stopOnFailure": false }
     },
     {
       "name": "fuzzer",
       "configurePreset": "fuzzer",
-      "output": { "outputOnFailure": true },
+      "output": { "outputOnFailure": true, "outputJUnitFile": "${sourceDir}/build/${presetName}/junit.xml" },
       "execution": { "noTestsAction": "error", "stopOnFailure": false }
     }
   ],
@@ -138,10 +138,10 @@
     },
     {
       "name": "coverage",
+      "description": "Configure and build only: coverage tests must run inside the self-contained 'coverage' target (cmake --build --preset coverage --target coverage), which resets stale coverage data first and writes the report.",
       "steps": [
         { "type": "configure", "name": "coverage" },
-        { "type": "build", "name": "coverage" },
-        { "type": "test", "name": "coverage" }
+        { "type": "build", "name": "coverage" }
       ]
     },
     {
