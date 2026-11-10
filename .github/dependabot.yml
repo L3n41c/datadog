@@ -1,31 +1,29 @@
 version: 2
+registries:
+  github-private:
+    type: git
+    url: https://github.com
+    username: L3n41c
+    password: ${{ secrets.GH_PAT }}
+
 updates:
-  # GitHub Actions referenced via `uses:` in .github/workflows/*.yml.
-  # For the github-actions ecosystem, directory must be "/" (it scans
-  # .github/workflows automatically). Note: Dependabot only rewrites `uses:`
-  # refs here — never `runs-on:` labels or compiler names.
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "daily"
 
-  # Python tools pinned in .github/requirements-*.txt (lint and coverage).
   - package-ecosystem: "pip"
     directory: "/.github"
     schedule:
       interval: "daily"
 
-  # `specs` git submodule. The manifest is .gitmodules at the repo root, so
-  # directory must be "/" (not "/specs"). Dependabot moves the pinned SHA
-  # forward to the latest commit of the submodule's configured branch; there
-  # is no semver comparison for submodules.
   - package-ecosystem: "gitsubmodule"
     directory: "/"
+    registries:
+      - github-private
     schedule:
       interval: "daily"
 
-  # C++ dependencies: updates builtin-baseline (and version constraints in
-  # overrides) in vcpkg.json.
   - package-ecosystem: "vcpkg"
     directory: "/"
     schedule:
