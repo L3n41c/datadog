@@ -65,7 +65,7 @@ jobs:
             | xargs -0 -r -P "$(nproc)" clang-tidy-22 -p build/dev
 
   actionlint:
-    name: actionlint (workflows)
+    name: actionlint
     runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
