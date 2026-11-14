@@ -95,12 +95,13 @@ jobs:
       # even when tests fail, so upload on success OR failure.
       - name: Upload JUnit report to Datadog
         if: >-
-          matrix.preset != 'release' &&
-          !cancelled() &&
+         matrix.preset != 'release' &&
+         (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) &&
+         !cancelled() &&
           (steps.workflow.outcome == 'success' || steps.workflow.outcome == 'failure')
         uses: DataDog/junit-upload-github-action@v4
         with:
-          api-key: ${{ secrets.DD_API_KEY }}
+          api_key: ${{ secrets.DD_API_KEY }}
           site: ${{ vars.DD_SITE }}
           service: datadog
           files: ${{ github.workspace }}/build/${{ matrix.preset }}/junit.xml
