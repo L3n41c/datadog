@@ -93,33 +93,11 @@ jobs:
       # steps.<id> must be declared earlier in the job (actionlint). release
       # produces no JUnit report (no test step). ctest writes the JUnit report
       # even when tests fail, so upload on success OR failure.
-      - name: Validate Datadog JUnit upload
-        id: junit-upload
+      - name: Upload JUnit report to Datadog
         if: >-
           matrix.preset != 'release' &&
           !cancelled() &&
           (steps.workflow.outcome == 'success' || steps.workflow.outcome == 'failure')
-        env:
-          DD_API_KEY: ${{ secrets.DD_API_KEY }}
-          DD_SITE: ${{ vars.DD_SITE }}
-          JUNIT_REPORT: ${{ github.workspace }}/build/${{ matrix.preset }}/junit.xml
-        run: |
-          if [ -z "$DD_API_KEY" ]; then
-            echo "::notice::Datadog upload skipped: DD_API_KEY is unavailable; ingestion is unverified."
-            exit 0
-          fi
-          if [ -z "$DD_SITE" ]; then
-            echo "::error::Datadog upload failed: the DD_SITE Actions variable is unavailable."
-            exit 1
-          fi
-          if [ ! -s "$JUNIT_REPORT" ]; then
-            echo "::error::Datadog upload failed: no non-empty JUnit report was produced."
-            exit 1
-          fi
-          echo "ready=true" >> "$GITHUB_OUTPUT"
-
-      - name: Upload JUnit report to Datadog
-        if: ${{ !cancelled() && steps.junit-upload.outputs.ready == 'true' }}
         uses: DataDog/junit-upload-github-action@v4
         with:
           api-key: ${{ secrets.DD_API_KEY }}
