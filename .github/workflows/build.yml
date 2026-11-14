@@ -77,12 +77,6 @@ jobs:
         if: matrix.preset == 'coverage' && matrix.compiler.name == 'gcc'
         run: python -m pip install -r .github/requirements-coverage.txt
 
-      - name: Install Datadog CI CLI
-        if: matrix.preset != 'release'
-        # A missing CLI must not fail the job; the upload step reports it.
-        continue-on-error: true
-        run: npm install -g @datadog/datadog-ci
-
       # One command per matrix leg: the workflow preset of the same name runs
       # configure + build + test (coverage additionally runs the coverage_reset
       # and coverage_report targets around the test step, via the coverage-reset
@@ -99,7 +93,8 @@ jobs:
       # steps.<id> must be declared earlier in the job (actionlint). release
       # produces no JUnit report (no test step). ctest writes the JUnit report
       # even when tests fail, so upload on success OR failure.
-      - name: Upload JUnit report to Datadog
+      - name: Validate Datadog JUnit upload
+        id: junit-upload
         if: >-
           matrix.preset != 'release' &&
           !cancelled() &&
@@ -107,8 +102,6 @@ jobs:
         env:
           DD_API_KEY: ${{ secrets.DD_API_KEY }}
           DD_SITE: ${{ vars.DD_SITE }}
-          DD_ENV: ci
-          DD_TAGS: "test.configuration:${{ matrix.compiler.name }}-${{ matrix.preset }}"
           JUNIT_REPORT: ${{ github.workspace }}/build/${{ matrix.preset }}/junit.xml
         run: |
           if [ -z "$DD_API_KEY" ]; then
@@ -123,7 +116,18 @@ jobs:
             echo "::error::Datadog upload failed: no non-empty JUnit report was produced."
             exit 1
           fi
-          datadog-ci junit upload --service datadog "$JUNIT_REPORT"
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+
+      - name: Upload JUnit report to Datadog
+        if: ${{ !cancelled() && steps.junit-upload.outputs.ready == 'true' }}
+        uses: DataDog/junit-upload-github-action@v4
+        with:
+          api-key: ${{ secrets.DD_API_KEY }}
+          site: ${{ vars.DD_SITE }}
+          service: datadog
+          files: ${{ github.workspace }}/build/${{ matrix.preset }}/junit.xml
+          env: ci
+          tags: "test.configuration:${{ matrix.compiler.name }}-${{ matrix.preset }}"
 
       - name: Upload coverage report to Datadog
         # Fork PRs do not receive the repository's API key. cmake --workflow
