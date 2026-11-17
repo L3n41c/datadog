@@ -63,7 +63,7 @@ jobs:
     # Publish only from main; pull requests only build the artifact above.
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: doxygen
-    runs-on: ubuntu-26.04
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       actions: read
