@@ -24,7 +24,7 @@ concurrency:
 jobs:
   clang-format:
     name: clang-format
-    runs-on: ubuntu-26.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
       - name: Check C++ formatting with clang-format 20
@@ -68,7 +68,7 @@ jobs:
 
   actionlint:
     name: actionlint
-    runs-on: ubuntu-26.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
       - name: Lint GitHub Actions workflows
@@ -81,7 +81,7 @@ jobs:
 
   yamllint:
     name: yamllint
-    runs-on: ubuntu-26.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
       - name: Lint YAML files
@@ -92,7 +92,7 @@ jobs:
 
   editorconfig:
     name: editorconfig-checker
-    runs-on: ubuntu-26.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
       - name: Check files against .editorconfig
@@ -100,7 +100,7 @@ jobs:
 
   cmake-lint:
     name: cmake-lint
-    runs-on: ubuntu-26.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7
@@ -111,7 +111,7 @@ jobs:
 
   markdownlint:
     name: markdownlint
-    runs-on: ubuntu-26.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
       - name: Lint Markdown files
