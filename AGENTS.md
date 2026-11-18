@@ -42,7 +42,7 @@ Agents pick this file up automatically. Mistral Vibe loads the repository-root `
 - Aim for the strongest correctness guarantees C++ can offer, as close as possible to what Rust guarantees:
   - follow the C++ Core Guidelines safety profiles (Pro.Type, Pro.Bounds, Pro.Lifetime): no pointer arithmetic, no `reinterpret_cast`, no C-style casts, no unchecked indexing;
   - mark fallible functions `[[nodiscard]]`, use `[[assume]]` and `std::unreachable`, and use `const` and `constexpr` as much as possible;
-  - use contracts (`[[pre: ...]]`, `[[post: ...]]`, P2900) where the toolchain supports them (GCC 15 provides them behind `-fcontracts`);
+  - use contracts (`pre(...)`, `post(...)`, and `post(result: ...)`) where the toolchain supports them;
   - use the C++26 features supported by our toolchain, such as `= delete("reason")` (see <https://en.cppreference.com/cpp/compiler_support/26>);
   - handle errors with `std::expected` and `std::optional` rather than error-prone manual state.
 - Use the classic design patterns (the Gang of Four catalog: creational, structural and behavioral patterns) wherever a use case matches, and use inheritance and polymorphism wherever they apply.
