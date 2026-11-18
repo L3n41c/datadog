@@ -1,27 +1,27 @@
-# .clang-format — Style C++ du projet.
+# .clang-format — Project C++ style.
 #
-# Style le plus consensuel possible : on part du style par défaut LLVM
-# (BasedOnStyle: LLVM) et on ne liste ici QUE les options qui s'en écartent.
-# Tout ce qui n'est pas listé hérite tel quel des valeurs par défaut de LLVM
-# (vérifié avec clang-format 20, la version utilisée par la CI dans lint.yml).
-# Référence : https://clang.llvm.org/docs/ClangFormatStyleOptions.html
+# The most consensual style possible: start from the default LLVM style
+# (BasedOnStyle: LLVM) and list here ONLY the options that deviate from it.
+# Everything not listed inherits the LLVM defaults as-is
+# (checked with clang-format 20, the version used by CI in lint.yml).
+# Reference: https://clang.llvm.org/docs/ClangFormatStyleOptions.html
 
 ---
 Language: Cpp
 Standard: Latest
 BasedOnStyle: LLVM
 
-# --- Indentation : tabulations pour l'indentation, espaces pour l'alignement ---
-# UseTab: ForIndentation = tabulations uniquement pour l'indentation, tout le
-# reste (alignement, continuations) en espaces — comme le style canonique de Go.
+# --- Indentation: tabs for indentation, spaces for alignment ---
+# UseTab: ForIndentation = tabs only for indentation, everything else
+# (alignment, continuations) in spaces — like the canonical Go style.
 UseTab: ForIndentation
 TabWidth: 4
 IndentWidth: 4
 AccessModifierOffset: -4
 
-# --- Accolades : ouvrante sur sa propre ligne après les instructions de contrôle ---
-# (style Allman pour les blocs de contrôle), attachée aux fonctions/classes,
-# else/catch sur leur propre ligne.
+# --- Braces: opening brace on its own line after control statements ---
+# (Allman style for control blocks), attached to functions/classes,
+# else/catch on their own line.
 BreakBeforeBraces: Custom
 BraceWrapping:
   AfterControlStatement: Always
@@ -29,28 +29,28 @@ BraceWrapping:
   BeforeElse: true
   BeforeWhile: true
 
-# --- Lignes courtes autorisées ---
+# --- Short lines allowed ---
 AlwaysBreakTemplateDeclarations: Yes
 AllowShortFunctionsOnASingleLine: Inline
 AllowShortIfStatementsOnASingleLine: WithoutElse
 AllowShortLambdasOnASingleLine: Inline
 
-# --- Pointeurs et références à gauche : Type *ptr, Type &ref ---
+# --- Pointers and references on the left: Type *ptr, Type &ref ---
 PointerAlignment: Left
 
-# --- Lignes : limite de 100 colonnes, 2 espaces avant un commentaire de fin de ligne ---
+# --- Lines: 100-column limit, 2 spaces before a trailing comment ---
 ColumnLimit: 100
 SpacesBeforeTrailingComments: 2
 KeepEmptyLinesAtTheStartOfBlocks: false
 
-# --- Namespaces : seules les namespaces imbriquées sont indentées ; ligne vide
-# entre les définitions ; initialiseurs de constructeur sur la ligne suivante ---
+# --- Namespaces: only inner namespaces are indented; blank line between
+# definitions; constructor initializers on the next line ---
 NamespaceIndentation: Inner
 SeparateDefinitionBlocks: Always
 PackConstructorInitializers: NextLine
 
-# --- Inclusions : regroupées par blocs — en-têtes C système, puis C++, puis
-# entre guillemets ; les fichiers de test sont traités comme le fichier principal ---
+# --- Includes: grouped into blocks — C system headers, then C++, then
+# quoted; test files are treated like the main file ---
 IncludeBlocks: Regroup
 IncludeCategories:
   - {Regex: '^<ext/.*\.h>', Priority: 2}

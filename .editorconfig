@@ -1,11 +1,11 @@
-# .editorconfig — Configuration universelle des éditeurs pour ce projet
+# .editorconfig — Universal editor configuration for this project
 # https://editorconfig.org
 #
-# Les valeurs par défaut ci-dessous regroupent ce qui est commun à la plupart
-# des types de fichiers du projet : UTF-8, fins de ligne LF, newline finale,
-# pas d'espaces en fin de ligne, indentation de 2 espaces.
-# La tabulation n'est utilisée comme caractère d'indentation que pour les
-# fichiers C/C++ et les Makefiles.
+# The default values below group what is common to most file types of the
+# project: UTF-8, LF line endings, final newline, no trailing whitespace,
+# 2-space indentation.
+# Tabs are used as the indentation character only for C/C++ files and
+# Makefiles.
 
 root = true
 
@@ -18,37 +18,37 @@ indent_style = space
 indent_size = 2
 tab_width = 4
 
-# --- C/C++ : tabulations (largeur 4) pour l'indentation, espaces pour
-# l'alignement, limite de 100 colonnes.
-# Miroir de .clang-format (UseTab: ForIndentation, IndentWidth/TabWidth: 4,
-# ColumnLimit: 100), de .dir-locals.el et de .vimrc.
+# --- C/C++: tabs (width 4) for indentation, spaces for alignment,
+# 100-column limit.
+# Mirrors .clang-format (UseTab: ForIndentation, IndentWidth/TabWidth: 4,
+# ColumnLimit: 100), .dir-locals.el and .vimrc.
 [*.{c,cc,cpp,cxx,c++,h,hh,hpp,hxx,C,H,h.in}]
 indent_style = tab
 indent_size = tab
 tab_width = 4
 max_line_length = 100
 
-# --- Makefiles : les tabulations sont exigées par make ---
+# --- Makefiles: tabs are required by make ---
 [{Makefile,*.mk}]
 indent_style = tab
 indent_size = tab
 tab_width = 4
 
-# --- CMake : indentation de 4 espaces, limite de 100 colonnes.
-# Miroir de .cmake-format.yaml (format.tab_size: 4, format.line_width: 100,
-# imposé par la règle C0301 de cmake-lint).
+# --- CMake: 4-space indentation, 100-column limit.
+# Mirrors .cmake-format.yaml (format.tab_size: 4, format.line_width: 100,
+# enforced by cmake-lint rule C0301).
 [{CMakeLists.txt,*.cmake}]
 indent_style = space
 indent_size = 4
 max_line_length = 100
 
-# --- Markdown : les espaces en fin de ligne sont significatifs (saut de
-# ligne dur) ; pas de limite de longueur de ligne ---
+# --- Markdown: trailing spaces are significant (hard line break);
+# no line length limit ---
 [*.{md,markdown}]
 trim_trailing_whitespace = false
 max_line_length = off
 
-# --- Textes de licence : espaces de tête de largeur libre ---
+# --- License texts: free-width leading spaces ---
 [{LICENSE,COPYING,NOTICE}]
 indent_style = space
 indent_size = 1
