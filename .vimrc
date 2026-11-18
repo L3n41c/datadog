@@ -1,59 +1,52 @@
-" .vimrc — Project-local Vim configuration for code formatting only.
-" These settings mirror .clang-format and .editorconfig.
-" Personal preferences belong in ~/.vimrc, not here.
+" .vimrc — Configuration Vim locale au projet (style uniquement).
 "
-" Loaded automatically when Vim starts in this directory
-" (requires 'set exrc' in ~/.vimrc or a plugin like vim-localrc).
+" Chargé automatiquement au démarrage de Vim dans ce répertoire si le
+" ~/.vimrc de l'utilisateur contient :  set exrc  +  set secure
+" (ou via un plugin comme vim-localrc).
+"
+" Contrainte volontaire : AUCUN hook de sauvegarde ici (pas de reformatage
+" à la sauvegarde, pas de suppression des espaces de fin de ligne à la
+" sauvegarde). Le moment où l'on reformate ses fichiers est un choix
+" personnel, à définir dans ~/.vimrc, pas dans chaque dépôt.
+"
+" Ces réglages reflètent .editorconfig, .clang-format, .cmake-format.yaml et
+" .dir-locals.el :
+"   - défaut    : indentation de 2 espaces (défaut .editorconfig [*])
+"   - C/C++     : tabulations d'indentation (largeur 4), limite de 100 colonnes
+"   - CMake     : indentation de 4 espaces, limite de 100 colonnes
+"   - Makefile  : tabulations d'indentation (exigé par make)
 
-" --- Indentation: tabs for indentation, spaces for alignment (matches .clang-format UseTab: ForIndentation) ---
-set noexpandtab       " use tab characters for indentation
-set tabstop=4         " visual width of a tab character
-set shiftwidth=4      " width of one indentation level
-set softtabstop=4     " number of spaces inserted/removed by Tab/Backspace
+" --- Détection du type de fichier (nécessaire aux réglages par type) ---
+filetype plugin indent on
 
-" --- Line length (matches .clang-format ColumnLimit: 100) ---
-set textwidth=0       " disable automatic line wrapping
-set colorcolumn=101   " highlight column 101 (1-based, past the 100-char limit)
-
-" --- File encoding and line endings (matches .editorconfig) ---
+" --- Défauts globaux (miroir de .editorconfig [*]) ---
+set encoding=utf-8
 set fileencoding=utf-8
-set fileformat=unix   " LF line endings
-set endofline         " ensure file ends with a newline
-set fixendofline      " automatically add final newline when missing
+set fileformat=unix         " fins de ligne LF
+set endofline
+set fixendofline            " ajoute la newline finale à l'écriture
+set expandtab               " espaces par défaut
+set tabstop=4               " largeur d'affichage d'une tabulation
+set shiftwidth=2            " un niveau d'indentation
+set softtabstop=2
+set textwidth=0             " pas de retour à la ligne automatique :
+                            " le formatage des lignes est du ressort de
+                            " clang-format / cmake-format, pas de l'éditeur
 
-" --- Trailing whitespace (matches .editorconfig trim_trailing_whitespace) ---
-autocmd BufWritePre * if &ft != 'markdown' | silent! :%s/\s\+$//e | endif
-
-" --- Clang-format integration: format buffer on save using project .clang-format ---
-" Uses system() to capture output and checks v:shell_error before replacing the
-" buffer, so a clang-format failure never overwrites the source with diagnostics.
-" --assume-filename tells clang-format which file it is formatting so it finds .clang-format.
-if executable('clang-format')
-    function! s:ClangFormatBuffer()
-        let l:filename = expand('%:p')
-        let l:input = join(getline(1, '$'), "\n") . "\n"
-        let l:output = system('clang-format --style=file --assume-filename=' . shellescape(l:filename), l:input)
-        if v:shell_error != 0
-            echohl ErrorMsg
-            echom 'clang-format failed (exit ' . v:shell_error . '): ' . l:output
-            echohl None
-            return
-        endif
-        let l:view = winsaveview()
-        let l:lines = split(l:output, "\n", 1)
-        if !empty(l:lines) && l:lines[-1] ==# ''
-            call remove(l:lines, -1)
-        endif
-        silent! keepjumps %delete _
-        if !empty(l:lines)
-            call setline(1, l:lines)
-        endif
-        call winrestview(l:view)
-    endfunction
-    autocmd BufWritePre *.h,*.hh,*.hpp,*.hxx,*.c,*.cc,*.cpp,*.cxx,*.c++
-        \ call s:ClangFormatBuffer()
-endif
-
-" --- C/C++ indentation style (matches .clang-format BreakBeforeBraces: Custom / Allman) ---
-set cindent
-set cinoptions=g0,:0,N-s,(0,Ws,J1,j1
+" --- Réglages par type de fichier ---
+augroup datadog_style
+  autocmd!
+  " C/C++ : tabulations pour l'indentation, espaces pour l'alignement ;
+  " limite de 100 colonnes (.clang-format UseTab/TabWidth/ColumnLimit).
+  autocmd FileType c,cpp setlocal noexpandtab tabstop=4 shiftwidth=4 softtabstop=4
+        \ cindent cinoptions=g0,:0,N-s,(0,Ws,J1,j1 colorcolumn=101
+  " CMake : 4 espaces, limite de 100 colonnes (.cmake-format.yaml).
+  autocmd FileType cmake setlocal expandtab tabstop=4 shiftwidth=4 softtabstop=4
+        \ colorcolumn=101
+  " Make : les tabulations sont obligatoires.
+  autocmd FileType make setlocal noexpandtab tabstop=4 shiftwidth=4 softtabstop=4
+  " YAML, JSON, Markdown, Lisp... : 2 espaces (défaut .editorconfig [*]),
+  " les tabulations éventuellement présentes s'affichent sur 4 colonnes.
+  autocmd FileType yaml,json,jsonc,markdown,lisp setlocal expandtab tabstop=4
+        \ shiftwidth=2 softtabstop=2
+augroup END

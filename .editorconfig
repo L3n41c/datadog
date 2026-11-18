@@ -1,85 +1,54 @@
-# .editorconfig — Configuration universelle pour tous les éditeurs
+# .editorconfig — Configuration universelle des éditeurs pour ce projet
 # https://editorconfig.org
+#
+# Les valeurs par défaut ci-dessous regroupent ce qui est commun à la plupart
+# des types de fichiers du projet : UTF-8, fins de ligne LF, newline finale,
+# pas d'espaces en fin de ligne, indentation de 2 espaces.
+# La tabulation n'est utilisée comme caractère d'indentation que pour les
+# fichiers C/C++ et les Makefiles.
 
 root = true
 
-# --- Defaults pour tous les fichiers ---
 [*]
 charset = utf-8
 end_of_line = lf
 insert_final_newline = true
 trim_trailing_whitespace = true
-indent_style = tab
-indent_size = 4
+indent_style = space
+indent_size = 2
 tab_width = 4
 
-# --- Fichiers C/C++ ---
-[*.{h,hh,hpp,hxx,c,cc,cpp,cxx,c++,C,H}]
+# --- C/C++ : tabulations (largeur 4) pour l'indentation, espaces pour
+# l'alignement, limite de 100 colonnes.
+# Miroir de .clang-format (UseTab: ForIndentation, IndentWidth/TabWidth: 4,
+# ColumnLimit: 100), de .dir-locals.el et de .vimrc.
+[*.{c,cc,cpp,cxx,c++,h,hh,hpp,hxx,C,H,h.in}]
 indent_style = tab
-indent_size = 4
+indent_size = tab
 tab_width = 4
 max_line_length = 100
 
-# --- Fichiers de build CMake ---
+# --- Makefiles : les tabulations sont exigées par make ---
+[{Makefile,*.mk}]
+indent_style = tab
+indent_size = tab
+tab_width = 4
+
+# --- CMake : indentation de 4 espaces, limite de 100 colonnes.
+# Miroir de .cmake-format.yaml (format.tab_size: 4, format.line_width: 100,
+# imposé par la règle C0301 de cmake-lint).
 [{CMakeLists.txt,*.cmake}]
 indent_style = space
 indent_size = 4
+max_line_length = 100
 
-# --- Fichiers Meson (si jamais) ---
-[meson.build]
-indent_style = space
-indent_size = 4
-
-# --- JSON (CMakePresets, etc.) ---
-[*.{json,jsonc}]
-indent_style = space
-indent_size = 2
-
-# --- Fichiers de configuration clang (format YAML) ---
-[.{clang-format,clang-tidy}]
-indent_style = space
-indent_size = 2
-
-# --- Emacs Lisp ---
-[*.el]
-indent_style = space
-indent_size = 2
-
-# --- Licences et textes longs (alignement au premier caractère) ---
-[{LICENSE,COPYING,NOTICE}]
-indent_style = space
-indent_size = 1
-
-# --- YAML (CI, pre-commit, etc.) ---
-[*.{yml,yaml}]
-indent_style = space
-indent_size = 2
-
-# --- Markdown ---
+# --- Markdown : les espaces en fin de ligne sont significatifs (saut de
+# ligne dur) ; pas de limite de longueur de ligne ---
 [*.{md,markdown}]
-indent_style = space
-indent_size = 2
 trim_trailing_whitespace = false
 max_line_length = off
 
-# --- Shell ---
-[*.{sh,bash,zsh}]
-indent_style = tab
-indent_size = 4
-
-# --- Python ---
-[*.py]
+# --- Textes de licence : espaces de tête de largeur libre ---
+[{LICENSE,COPYING,NOTICE}]
 indent_style = space
-indent_size = 4
-
-# --- Fichiers de configuration divers ---
-[{Makefile,*.mk}]
-indent_style = tab
-
-[.gitignore]
-insert_final_newline = true
-
-# --- Fichiers Doxygen ---
-[{Doxyfile,Doxyfile.*}]
-indent_style = tab
-indent_size = 4
+indent_size = 1
