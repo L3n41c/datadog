@@ -1,52 +1,51 @@
-" .vimrc — Configuration Vim locale au projet (style uniquement).
+" .vimrc — Project-local Vim configuration (style only).
 "
-" Chargé automatiquement au démarrage de Vim dans ce répertoire si le
-" ~/.vimrc de l'utilisateur contient :  set exrc  +  set secure
-" (ou via un plugin comme vim-localrc).
+" Loaded automatically at Vim startup in this directory if the user's
+" ~/.vimrc contains:  set exrc  +  set secure
+" (or via a plugin such as vim-localrc).
 "
-" Contrainte volontaire : AUCUN hook de sauvegarde ici (pas de reformatage
-" à la sauvegarde, pas de suppression des espaces de fin de ligne à la
-" sauvegarde). Le moment où l'on reformate ses fichiers est un choix
-" personnel, à définir dans ~/.vimrc, pas dans chaque dépôt.
+" Deliberate constraint: NO save hook here (no reformatting on save, no
+" trailing-whitespace removal on save). When to reformat one's files is a
+" personal choice, to be set in ~/.vimrc, not in every repository.
 "
-" Ces réglages reflètent .editorconfig, .clang-format, .cmake-format.yaml et
-" .dir-locals.el :
-"   - défaut    : indentation de 2 espaces (défaut .editorconfig [*])
-"   - C/C++     : tabulations d'indentation (largeur 4), limite de 100 colonnes
-"   - CMake     : indentation de 4 espaces, limite de 100 colonnes
-"   - Makefile  : tabulations d'indentation (exigé par make)
+" These settings mirror .editorconfig, .clang-format, .cmake-format.yaml
+" and .dir-locals.el:
+"   - default   : 2-space indentation (default of .editorconfig [*])
+"   - C/C++     : indentation tabs (width 4), 100-column limit
+"   - CMake     : 4-space indentation, 100-column limit
+"   - Makefile  : indentation tabs (required by make)
 
-" --- Détection du type de fichier (nécessaire aux réglages par type) ---
+" --- File type detection (needed for per-type settings) ---
 filetype plugin indent on
 
-" --- Défauts globaux (miroir de .editorconfig [*]) ---
+" --- Global defaults (mirror of .editorconfig [*]) ---
 set encoding=utf-8
 set fileencoding=utf-8
-set fileformat=unix         " fins de ligne LF
+set fileformat=unix         " LF line endings
 set endofline
-set fixendofline            " ajoute la newline finale à l'écriture
-set expandtab               " espaces par défaut
-set tabstop=4               " largeur d'affichage d'une tabulation
-set shiftwidth=2            " un niveau d'indentation
+set fixendofline            " add the final newline on write
+set expandtab               " spaces by default
+set tabstop=4               " display width of a tab
+set shiftwidth=2            " one indentation level
 set softtabstop=2
-set textwidth=0             " pas de retour à la ligne automatique :
-                            " le formatage des lignes est du ressort de
-                            " clang-format / cmake-format, pas de l'éditeur
+set textwidth=0             " no automatic line wrapping:
+                            " line formatting is clang-format / cmake-format's
+                            " job, not the editor's
 
-" --- Réglages par type de fichier ---
+" --- Per-file-type settings ---
 augroup datadog_style
   autocmd!
-  " C/C++ : tabulations pour l'indentation, espaces pour l'alignement ;
-  " limite de 100 colonnes (.clang-format UseTab/TabWidth/ColumnLimit).
+  " C/C++: tabs for indentation, spaces for alignment;
+  " 100-column limit (.clang-format UseTab/TabWidth/ColumnLimit).
   autocmd FileType c,cpp setlocal noexpandtab tabstop=4 shiftwidth=4 softtabstop=4
         \ cindent cinoptions=g0,:0,N-s,(0,Ws,J1,j1 colorcolumn=101
-  " CMake : 4 espaces, limite de 100 colonnes (.cmake-format.yaml).
+  " CMake: 4 spaces, 100-column limit (.cmake-format.yaml).
   autocmd FileType cmake setlocal expandtab tabstop=4 shiftwidth=4 softtabstop=4
         \ colorcolumn=101
-  " Make : les tabulations sont obligatoires.
+  " Make: tabs are mandatory.
   autocmd FileType make setlocal noexpandtab tabstop=4 shiftwidth=4 softtabstop=4
-  " YAML, JSON, Markdown, Lisp... : 2 espaces (défaut .editorconfig [*]),
-  " les tabulations éventuellement présentes s'affichent sur 4 colonnes.
+  " YAML, JSON, Markdown, Lisp...: 2 spaces (default .editorconfig [*]),
+  " any tab present is displayed 4 columns wide.
   autocmd FileType yaml,json,jsonc,markdown,lisp setlocal expandtab tabstop=4
         \ shiftwidth=2 softtabstop=2
 augroup END
