@@ -40,6 +40,10 @@ jobs:
         preset:
           - dev
           - dev-tsan
+          - dev-msan
+          - dev-cfi
+          - dev-safestack
+          - dev-scudo
           - release
           - coverage
           - fuzzer
@@ -48,6 +52,18 @@ jobs:
           - compiler:
               name: gcc
             preset: fuzzer
+          - compiler:
+              name: gcc
+            preset: dev-msan
+          - compiler:
+              name: gcc
+            preset: dev-cfi
+          - compiler:
+              name: gcc
+            preset: dev-safestack
+          - compiler:
+              name: gcc
+            preset: dev-scudo
     env:
       CC: ${{ matrix.compiler.cc }}
       CXX: ${{ matrix.compiler.cxx }}

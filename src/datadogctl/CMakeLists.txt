@@ -2,18 +2,14 @@
 
 add_executable(datadogctl main.cpp)
 
-target_include_directories(datadogctl PRIVATE
-    "${CMAKE_SOURCE_DIR}/include"
-    "${CMAKE_BINARY_DIR}/include"
-)
+target_include_directories(datadogctl PRIVATE "${CMAKE_SOURCE_DIR}/include"
+                                              "${CMAKE_BINARY_DIR}/include")
 
 # --- Unit tests ---
-if(BUILD_TESTING)
+if(BUILD_TESTING AND DATADOG_BUILD_GTESTS)
     add_executable(test_datadogctl test_datadogctl.cpp)
     target_link_libraries(test_datadogctl PRIVATE GTest::gtest_main)
-    target_include_directories(test_datadogctl PRIVATE
-        "${CMAKE_SOURCE_DIR}/include"
-        "${CMAKE_BINARY_DIR}/include"
-    )
-    gtest_discover_tests(test_datadogctl)
+    target_include_directories(test_datadogctl PRIVATE "${CMAKE_SOURCE_DIR}/include"
+                                                       "${CMAKE_BINARY_DIR}/include")
+    gtest_discover_tests(test_datadogctl DISCOVERY_MODE PRE_TEST)
 endif()

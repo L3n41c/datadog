@@ -24,16 +24,13 @@ concurrency:
 jobs:
   clang-format:
     name: clang-format
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
-      - name: Check C++ formatting with clang-format 20
-        uses: DoozyX/clang-format-lint-action@bcb4eb2cb0d707ee4f3e5cc3b456eb075f12cf73  # v0.20
-        with:
-          source: .
-          exclude: build
-          extensions: c,h,C,H,cpp,hpp,cc,hh,c++,h++,cxx,hxx
-          clangFormatVersion: "20"
+      - name: Check C++ formatting
+        run: >-
+          git ls-files -z -- '*.c' '*.cc' '*.cpp' '*.cxx' '*.h' '*.hh' '*.hpp' '*.hxx'
+          | xargs -0 -r clang-format --dry-run --Werror --style=file
 
   clang-tidy:
     name: clang-tidy
@@ -58,13 +55,10 @@ jobs:
         # CMAKE_CXX_SCAN_FOR_MODULES=OFF: CMake 4.x scans for C++ modules by default and
         # injects -fmodule-mapper=@<file>.modmap flags that clang-tidy cannot resolve.
         run: cmake --preset dev -DCMAKE_CXX_SCAN_FOR_MODULES=OFF -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
-      # clang-tidy-22 = newest clang-tidy on the ubuntu-26.04 image (the .clang-tidy
-      # config targets recent checks); bump together with runs-on. Not a 'uses:'
-      # ref, so Dependabot does not manage it.
       - name: Run clang-tidy (config has WarningsAsErrors '*')
         run: |
           find src -type f \( -name '*.cpp' -o -name '*.cxx' -o -name '*.cc' -o -name '*.h' -o -name '*.hpp' \) -print0 \
-            | xargs -0 -r -P "$(nproc)" clang-tidy-22 -p build/dev
+            | xargs -0 -r -P "$(nproc)" clang-tidy -p build/dev
 
   actionlint:
     name: actionlint
@@ -107,7 +101,11 @@ jobs:
       - name: Install cmakelang (pinned in requirements-lint.txt, updated by Dependabot)
         run: python -m pip install -r .github/requirements-lint.txt
       - name: Lint CMake files
-        run: git ls-files 'CMakeLists.txt' '*.cmake' | xargs cmake-lint -c .cmake-format.yaml
+        run: |
+          git ls-files -z -- 'CMakeLists.txt' '**/CMakeLists.txt' '*.cmake' \
+            | xargs -0 -r cmake-format --check -c .cmake-format.yaml --
+          git ls-files -z -- 'CMakeLists.txt' '**/CMakeLists.txt' '*.cmake' \
+            | xargs -0 -r cmake-lint -c .cmake-format.yaml --
 
   markdownlint:
     name: markdownlint

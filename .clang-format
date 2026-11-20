@@ -1,61 +1,6 @@
-# .clang-format — Project C++ style.
-#
-# The most consensual style possible: start from the default LLVM style
-# (BasedOnStyle: LLVM) and list here ONLY the options that deviate from it.
-# Everything not listed inherits the LLVM defaults as-is
-# (checked with clang-format 20, the version used by CI in lint.yml).
-# Reference: https://clang.llvm.org/docs/ClangFormatStyleOptions.html
-
----
-Language: Cpp
-Standard: Latest
 BasedOnStyle: LLVM
-
-# --- Indentation: tabs for indentation, spaces for alignment ---
-# UseTab: ForIndentation = tabs only for indentation, everything else
-# (alignment, continuations) in spaces — like the canonical Go style.
+Standard: Latest
 UseTab: ForIndentation
 TabWidth: 4
 IndentWidth: 4
-AccessModifierOffset: -4
-
-# --- Braces: opening brace on its own line after control statements ---
-# (Allman style for control blocks), attached to functions/classes,
-# else/catch on their own line.
-BreakBeforeBraces: Custom
-BraceWrapping:
-  AfterControlStatement: Always
-  BeforeCatch: true
-  BeforeElse: true
-  BeforeWhile: true
-
-# --- Short lines allowed ---
-AlwaysBreakTemplateDeclarations: Yes
-AllowShortFunctionsOnASingleLine: Inline
-AllowShortIfStatementsOnASingleLine: WithoutElse
-AllowShortLambdasOnASingleLine: Inline
-
-# --- Pointers and references on the left: Type *ptr, Type &ref ---
-PointerAlignment: Left
-
-# --- Lines: 100-column limit, 2 spaces before a trailing comment ---
 ColumnLimit: 100
-SpacesBeforeTrailingComments: 2
-KeepEmptyLinesAtTheStartOfBlocks: false
-
-# --- Namespaces: only inner namespaces are indented; blank line between
-# definitions; constructor initializers on the next line ---
-NamespaceIndentation: Inner
-SeparateDefinitionBlocks: Always
-PackConstructorInitializers: NextLine
-
-# --- Includes: grouped into blocks — C system headers, then C++, then
-# quoted; test files are treated like the main file ---
-IncludeBlocks: Regroup
-IncludeCategories:
-  - {Regex: '^<ext/.*\.h>', Priority: 2}
-  - {Regex: '^<.*\.h>', Priority: 1}
-  - {Regex: '^<.*>', Priority: 1}
-  - {Regex: '^".*"', Priority: 3}
-IncludeIsMainRegex: '([-_](test|unittest))?$'
-...
