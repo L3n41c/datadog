@@ -4,16 +4,31 @@ cmake_minimum_required(VERSION 4.0)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(Version)
 
-project(datadog
+project(
+    datadog
     VERSION ${DATADOG_VERSION_MAJOR}.${DATADOG_VERSION_MINOR}.${DATADOG_VERSION_PATCH}
     DESCRIPTION "Datadog agent with dynamic plugin architecture"
-    LANGUAGES CXX
-)
+    LANGUAGES CXX)
 
 # --- C++ standard ---
 set(CMAKE_CXX_STANDARD 26)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    add_compile_options(
+        -Wall
+        -Wextra
+        -Wpedantic
+        -Wconversion
+        -Wsign-conversion
+        -Wshadow
+        -Wold-style-cast
+        -Wzero-as-null-pointer-constant
+        -Werror
+        -fstack-protector-strong)
+    add_compile_options($<$<CONFIG:Release>:-D_FORTIFY_SOURCE=3>)
+endif()
 
 # --- Export compile commands for clangd / clang-tidy ---
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -22,37 +37,29 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # --- Generate version header ---
-# configure_file() at configure time creates the initial version.h (also
-# needed for IDE integration).  The version_header custom target below
-# re-checks the git state on every build and regenerates version.h if the
-# version has changed (commit, checkout, tag, or dirty state).
-configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/datadog/version.h.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/include/datadog/version.h"
-    @ONLY
-)
+# configure_file() at configure time creates the initial version.h (also needed for IDE
+# integration).  The version_header custom target below re-checks the git state on every build and
+# regenerates version.h if the version has changed (commit, checkout, tag, or dirty state).
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/include/datadog/version.h.in"
+               "${CMAKE_CURRENT_BINARY_DIR}/include/datadog/version.h" @ONLY)
 
-# Build-time version header check: runs Version.cmake in script mode on every
-# build.  configure_file() inside the script only updates the timestamp when
-# content changes, so dependent files are recompiled only when the version
-# actually differs.
-add_custom_target(version_header
-    COMMAND ${CMAKE_COMMAND}
-        -DSOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}
-        -DBINARY_DIR=${CMAKE_CURRENT_BINARY_DIR}
-        -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Version.cmake
+# Build-time version header check: runs Version.cmake in script mode on every build.
+# configure_file() inside the script only updates the timestamp when content changes, so dependent
+# files are recompiled only when the version actually differs.
+add_custom_target(
+    version_header
+    COMMAND
+        ${CMAKE_COMMAND} -DSOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}
+        -DBINARY_DIR=${CMAKE_CURRENT_BINARY_DIR} -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Version.cmake
     COMMENT "Checking version header"
-    VERBATIM
-)
+    VERBATIM)
 
 # --- Global include directories ---
-include_directories(
-    "${CMAKE_CURRENT_SOURCE_DIR}/include"
-    "${CMAKE_CURRENT_BINARY_DIR}/include"
-)
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include" "${CMAKE_CURRENT_BINARY_DIR}/include")
 
 # --- Options ---
 option(BUILD_TESTING "Build unit tests" ON)
+option(DATADOG_BUILD_GTESTS "Build GoogleTest unit tests" ON)
 option(ENABLE_COVERAGE "Enable code coverage instrumentation" OFF)
 option(ENABLE_FUZZER "Enable libFuzzer targets" OFF)
 option(DATADOG_BUILD_DOCS "Build Doxygen documentation" OFF)
@@ -63,6 +70,9 @@ find_package(Boost REQUIRED)
 # --- Testing ---
 if(BUILD_TESTING)
     enable_testing()
+endif()
+
+if(BUILD_TESTING AND DATADOG_BUILD_GTESTS)
     find_package(GTest REQUIRED)
     include(GoogleTest)
 endif()
@@ -80,18 +90,24 @@ endif()
 
 # --- Fuzzer guard: -fsanitize=fuzzer-no-link is Clang-only ---
 if(ENABLE_FUZZER AND NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    message(FATAL_ERROR
-        "ENABLE_FUZZER requires Clang (uses -fsanitize=fuzzer-no-link, "
-        "which GCC does not support). Use the 'fuzzer' CMake preset "
-        "(which selects clang++) or configure with -DCMAKE_CXX_COMPILER=clang++.")
+    message(
+        FATAL_ERROR
+            "ENABLE_FUZZER requires Clang (uses -fsanitize=fuzzer-no-link, "
+            "which GCC does not support). Use the 'fuzzer' CMake preset "
+            "(which selects clang++) or configure with -DCMAKE_CXX_COMPILER=clang++.")
 endif()
 
 # --- Subdirectories ---
 add_subdirectory(src)
 
+if(BUILD_TESTING)
+    add_test(NAME datadogd-smoke COMMAND datadogd)
+    add_test(NAME datadogctl-smoke COMMAND datadogctl)
+endif()
+
 # --- All runtime and test targets ---
-# Used below for the version_header dependency and by the 'coverage' target
-# (cmake/Coverage.cmake) as llvm-cov objects.
+# Used below for the version_header dependency and by the 'coverage' target (cmake/Coverage.cmake)
+# as llvm-cov objects.
 set(DATADOG_ALL_TARGETS
     datadogd
     datadogctl
@@ -100,10 +116,11 @@ set(DATADOG_ALL_TARGETS
     log_forwarder
     log_receiver_journald
     log_receiver_syslog
-    log_receiver_file
-)
-if(BUILD_TESTING)
-    list(APPEND DATADOG_ALL_TARGETS
+    log_receiver_file)
+if(BUILD_TESTING AND DATADOG_BUILD_GTESTS)
+    list(
+        APPEND
+        DATADOG_ALL_TARGETS
         test_datadogd
         test_datadogctl
         test_host_forwarder
@@ -111,8 +128,7 @@ if(BUILD_TESTING)
         test_log_forwarder
         test_log_receiver_journald
         test_log_receiver_syslog
-        test_log_receiver_file
-    )
+        test_log_receiver_file)
 endif()
 
 # --- Make all targets depend on version header regeneration ---
@@ -121,16 +137,16 @@ foreach(target IN LISTS DATADOG_ALL_TARGETS)
 endforeach()
 
 # --- Coverage report target ---
-# Defines the 'coverage' custom target (gcovr for GCC, llvm-cov for Clang).
-# Included after add_subdirectory(src) so all instrumented targets exist.
+# Defines the 'coverage' custom target (gcovr for GCC, llvm-cov for Clang). Included after
+# add_subdirectory(src) so all instrumented targets exist.
 if(ENABLE_COVERAGE)
     include(Coverage)
 endif()
 
 # --- Doxygen documentation ---
-# Uses doxygen_add_docs with DOXYGEN_* variables (CMake FindDoxygen module).
-# doxygen_add_docs generates its own Doxyfile from these variables.
-# Theme: doxygen-awesome-css, fetched via FetchContent at configure time.
+# Uses doxygen_add_docs with DOXYGEN_* variables (CMake FindDoxygen module). doxygen_add_docs
+# generates its own Doxyfile from these variables. Theme: doxygen-awesome-css, fetched via
+# FetchContent at configure time.
 if(DATADOG_BUILD_DOCS)
     find_package(Doxygen REQUIRED COMPONENTS dot)
 
@@ -141,8 +157,7 @@ if(DATADOG_BUILD_DOCS)
         GIT_REPOSITORY https://github.com/jothepro/doxygen-awesome-css.git
         # Pinned to immutable commit SHA for tag v2.4.1 (tags can be force-moved).
         GIT_TAG 1f3620084ff75734ed192101acf40e9dff01d848
-        SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/doxygen-awesome-css"
-    )
+        SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/doxygen-awesome-css")
     FetchContent_MakeAvailable(doxygen-awesome-css)
 
     # DOXYGEN_* variables consumed by doxygen_add_docs to customize the generated Doxyfile.
@@ -168,10 +183,8 @@ if(DATADOG_BUILD_DOCS)
     set(DOXYGEN_ENABLE_PREPROCESSING "YES")
     set(DOXYGEN_MACRO_EXPANSION "NO")
     set(DOXYGEN_SEARCH_INCLUDES "YES")
-    set(DOXYGEN_INCLUDE_PATH
-        "${CMAKE_CURRENT_SOURCE_DIR}/include"
-        "${CMAKE_CURRENT_BINARY_DIR}/include"
-    )
+    set(DOXYGEN_INCLUDE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/include"
+                             "${CMAKE_CURRENT_BINARY_DIR}/include")
     set(DOXYGEN_PREDEFINED "")
     set(DOXYGEN_EXPAND_AS_DEFINED "")
     set(DOXYGEN_SKIP_FUNCTION_MACROS "YES")
@@ -189,15 +202,10 @@ if(DATADOG_BUILD_DOCS)
     set(DOXYGEN_HTML_COLORSTYLE "LIGHT")
     # doxygen-awesome-css theme integration
     set(DOXYGEN_HTML_EXTRA_STYLESHEET
-        "${CMAKE_CURRENT_BINARY_DIR}/doxygen-awesome-css/doxygen-awesome.css"
-    )
+        "${CMAKE_CURRENT_BINARY_DIR}/doxygen-awesome-css/doxygen-awesome.css")
     set(DOXYGEN_HTML_EXTRA_FILES
-        "${CMAKE_CURRENT_BINARY_DIR}/doxygen-awesome-css/doxygen-awesome-darkmode-toggle.js"
-    )
+        "${CMAKE_CURRENT_BINARY_DIR}/doxygen-awesome-css/doxygen-awesome-darkmode-toggle.js")
 
-    doxygen_add_docs(docs
-        "${CMAKE_CURRENT_SOURCE_DIR}/include"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src"
-        COMMENT "Generating Doxygen documentation with doxygen-awesome-css theme"
-    )
+    doxygen_add_docs(docs "${CMAKE_CURRENT_SOURCE_DIR}/include" "${CMAKE_CURRENT_SOURCE_DIR}/src"
+                     COMMENT "Generating Doxygen documentation with doxygen-awesome-css theme")
 endif()
