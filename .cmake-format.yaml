@@ -1,13 +1,5 @@
-# cmakelang configuration, used by `cmake-format` / `cmake-lint` in CI
-# (lint.yml). Only non-default values are listed here (by default:
-# line_width: 80, tab_size: 2, and space indentation — cmake-format
-# never emits tabs).
-#
-# cmake-format indents with spaces: CMake files therefore use 4-space
-# indentation in .editorconfig, matching format.tab_size.
-# format.line_width mirrors .clang-format ColumnLimit: 100 and the
-# max_line_length of the CMake section of .editorconfig; cmake-lint rule
-# C0301 reads format.line_width.
 format:
   line_width: 100
   tab_size: 4
+markup:
+  first_comment_is_literal: true

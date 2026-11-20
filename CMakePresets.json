@@ -23,7 +23,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "BUILD_TESTING": "ON",
-        "CMAKE_CXX_FLAGS": "-fsanitize=address,undefined -fno-omit-frame-pointer -g -O1",
+        "CMAKE_CXX_FLAGS": "-fsanitize=address,undefined,pointer-compare,pointer-subtract -fno-omit-frame-pointer -g -O1",
         "CMAKE_EXE_LINKER_FLAGS": "-fsanitize=address,undefined",
         "CMAKE_SHARED_LINKER_FLAGS": "-fsanitize=address,undefined"
       }
@@ -39,6 +39,64 @@
         "CMAKE_CXX_FLAGS": "-fsanitize=thread -fno-omit-frame-pointer -g -O1",
         "CMAKE_EXE_LINKER_FLAGS": "-fsanitize=thread",
         "CMAKE_SHARED_LINKER_FLAGS": "-fsanitize=thread"
+      }
+    },
+    {
+      "name": "dev-msan",
+      "displayName": "Development (MSan)",
+      "description": "Debug build with MemorySanitizer and smoke tests",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_COMPILER": "clang++",
+        "BUILD_TESTING": "ON",
+        "DATADOG_BUILD_GTESTS": "OFF",
+        "CMAKE_CXX_FLAGS": "-fsanitize=memory -fsanitize-memory-track-origins=2 -fno-omit-frame-pointer -fno-optimize-sibling-calls -g -O1",
+        "CMAKE_EXE_LINKER_FLAGS": "-fsanitize=memory",
+        "CMAKE_SHARED_LINKER_FLAGS": "-fsanitize=memory"
+      }
+    },
+    {
+      "name": "dev-cfi",
+      "displayName": "Development (CFI)",
+      "description": "Debug build with control-flow integrity checks",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_COMPILER": "clang++",
+        "CMAKE_INTERPROCEDURAL_OPTIMIZATION": "ON",
+        "BUILD_TESTING": "ON",
+        "CMAKE_CXX_FLAGS": "-flto=thin -fsanitize=cfi -fno-sanitize-trap=cfi -fvisibility=hidden -fno-omit-frame-pointer -g -O1",
+        "CMAKE_EXE_LINKER_FLAGS": "-fuse-ld=lld -fsanitize=cfi -fno-sanitize-trap=cfi",
+        "CMAKE_SHARED_LINKER_FLAGS": "-fuse-ld=lld -fsanitize=cfi -fno-sanitize-trap=cfi"
+      }
+    },
+    {
+      "name": "dev-safestack",
+      "displayName": "Development (SafeStack)",
+      "description": "Debug build with SafeStack protection",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_COMPILER": "clang++",
+        "BUILD_TESTING": "ON",
+        "CMAKE_CXX_FLAGS": "-fsanitize=safe-stack -fno-omit-frame-pointer -g -O1",
+        "CMAKE_EXE_LINKER_FLAGS": "-fsanitize=safe-stack",
+        "CMAKE_SHARED_LINKER_FLAGS": "-fsanitize=safe-stack"
+      }
+    },
+    {
+      "name": "dev-scudo",
+      "displayName": "Development (Scudo)",
+      "description": "Debug build with the hardened Scudo allocator",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_COMPILER": "clang++",
+        "BUILD_TESTING": "ON",
+        "CMAKE_CXX_FLAGS": "-fsanitize=scudo -fno-omit-frame-pointer -g -O1",
+        "CMAKE_EXE_LINKER_FLAGS": "-fsanitize=scudo",
+        "CMAKE_SHARED_LINKER_FLAGS": "-fsanitize=scudo"
       }
     },
     {
@@ -82,6 +140,10 @@
   "buildPresets": [
     { "name": "dev", "configurePreset": "dev" },
     { "name": "dev-tsan", "configurePreset": "dev-tsan" },
+    { "name": "dev-msan", "configurePreset": "dev-msan" },
+    { "name": "dev-cfi", "configurePreset": "dev-cfi" },
+    { "name": "dev-safestack", "configurePreset": "dev-safestack" },
+    { "name": "dev-scudo", "configurePreset": "dev-scudo" },
     { "name": "release", "configurePreset": "release" },
     { "name": "coverage", "configurePreset": "coverage" },
     { "name": "fuzzer", "configurePreset": "fuzzer" },
@@ -92,12 +154,42 @@
     {
       "name": "dev",
       "configurePreset": "dev",
+      "environment": {
+        "ASAN_OPTIONS": "detect_leaks=1:strict_string_checks=1",
+        "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1"
+      },
       "output": { "outputOnFailure": true, "outputJUnitFile": "${sourceDir}/build/${presetName}/junit.xml" },
       "execution": { "noTestsAction": "error", "stopOnFailure": false }
     },
     {
       "name": "dev-tsan",
       "configurePreset": "dev-tsan",
+      "environment": { "TSAN_OPTIONS": "halt_on_error=1" },
+      "output": { "outputOnFailure": true, "outputJUnitFile": "${sourceDir}/build/${presetName}/junit.xml" },
+      "execution": { "noTestsAction": "error", "stopOnFailure": false }
+    },
+    {
+      "name": "dev-msan",
+      "configurePreset": "dev-msan",
+      "environment": { "MSAN_OPTIONS": "halt_on_error=1" },
+      "output": { "outputOnFailure": true, "outputJUnitFile": "${sourceDir}/build/${presetName}/junit.xml" },
+      "execution": { "noTestsAction": "error", "stopOnFailure": false }
+    },
+    {
+      "name": "dev-cfi",
+      "configurePreset": "dev-cfi",
+      "output": { "outputOnFailure": true, "outputJUnitFile": "${sourceDir}/build/${presetName}/junit.xml" },
+      "execution": { "noTestsAction": "error", "stopOnFailure": false }
+    },
+    {
+      "name": "dev-safestack",
+      "configurePreset": "dev-safestack",
+      "output": { "outputOnFailure": true, "outputJUnitFile": "${sourceDir}/build/${presetName}/junit.xml" },
+      "execution": { "noTestsAction": "error", "stopOnFailure": false }
+    },
+    {
+      "name": "dev-scudo",
+      "configurePreset": "dev-scudo",
       "output": { "outputOnFailure": true, "outputJUnitFile": "${sourceDir}/build/${presetName}/junit.xml" },
       "execution": { "noTestsAction": "error", "stopOnFailure": false }
     },
@@ -132,6 +224,38 @@
         { "type": "configure", "name": "dev-tsan" },
         { "type": "build", "name": "dev-tsan" },
         { "type": "test", "name": "dev-tsan" }
+      ]
+    },
+    {
+      "name": "dev-msan",
+      "steps": [
+        { "type": "configure", "name": "dev-msan" },
+        { "type": "build", "name": "dev-msan" },
+        { "type": "test", "name": "dev-msan" }
+      ]
+    },
+    {
+      "name": "dev-cfi",
+      "steps": [
+        { "type": "configure", "name": "dev-cfi" },
+        { "type": "build", "name": "dev-cfi" },
+        { "type": "test", "name": "dev-cfi" }
+      ]
+    },
+    {
+      "name": "dev-safestack",
+      "steps": [
+        { "type": "configure", "name": "dev-safestack" },
+        { "type": "build", "name": "dev-safestack" },
+        { "type": "test", "name": "dev-safestack" }
+      ]
+    },
+    {
+      "name": "dev-scudo",
+      "steps": [
+        { "type": "configure", "name": "dev-scudo" },
+        { "type": "build", "name": "dev-scudo" },
+        { "type": "test", "name": "dev-scudo" }
       ]
     },
     {

@@ -38,6 +38,10 @@ Agents pick this file up automatically. Mistral Vibe loads the repository-root `
 ## Modern C++
 
 - Use the most modern C++ possible: C++26 with the latest GCC and Clang. Never use a legacy construct when a modern replacement exists.
+- Use `#pragma once` for project headers; the supported GCC and Clang versions
+  implement it reliably.
+- Prefer a leading return type when it is clearer and shorter. Use a trailing
+  return type only when syntax requires it or it materially improves clarity.
 - Raw pointers are forbidden. Use smart pointers (`std::unique_ptr`, `std::shared_ptr`), references, `std::optional`, `std::expected`, `std::span` and views. Manual `new` and `delete` are forbidden; use RAII for every resource.
 - Aim for the strongest correctness guarantees C++ can offer, as close as possible to what Rust guarantees:
   - follow the C++ Core Guidelines safety profiles (Pro.Type, Pro.Bounds, Pro.Lifetime): no pointer arithmetic, no `reinterpret_cast`, no C-style casts, no unchecked indexing;
@@ -56,9 +60,18 @@ Agents pick this file up automatically. Mistral Vibe loads the repository-root `
 ## Build, tests and lint
 
 - Build and test with the CMake presets, for example `cmake --workflow --preset dev` (configure, build and test in one command).
-- Every change must keep the whole CI green: build and tests on every preset and both compilers (gcc and clang, including the sanitizer presets), plus all linters (clang-format, clang-tidy, actionlint, yamllint, editorconfig-checker, cmake-lint, markdownlint).
+- Every change must keep the whole CI green: build and tests on every preset
+  with every compiler that supports it, including the sanitizer presets, plus
+  all linters (clang-format, clang-tidy, actionlint, yamllint,
+  editorconfig-checker, cmake-lint, markdownlint).
 - Add GTest unit tests for every new behavior and keep the coverage flow working.
 - Run clang-format and clang-tidy locally before committing.
+- Do not add `NOLINT`, formatter-off regions, linter exclusions, or warning
+  suppressions unless the rule is objectively inapplicable. Keep every such
+  exception local, name the rule, and explain why it is safe.
+- CI must check every tracked project file with its applicable formatter and
+  linter. Generated files, build directories, and the `specs` submodule are
+  not project source files and must not be checked as such.
 
 ## Git workflow
 

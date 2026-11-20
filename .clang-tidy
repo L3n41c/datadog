@@ -1,136 +1,18 @@
-# .clang-tidy — Ultra-aggressive C++26 configuration
-#
-# Strategy: enable as many checks as possible via per-category wildcards,
-# starting by disabling everything (-*), then re-enabling the relevant
-# categories. Individual unwanted checks are disabled with a - prefix.
-# This approach guarantees that new checks added in future clang-tidy
-# versions within the enabled categories are automatically picked up.
-#
-# To enable ABSOLUTELY all checks (including new categories), replace the
-# Checks section with:  Checks: "*"
-# (but in that case individual disables with - no longer work — they must
-#  be removed or moved into CheckOptions)
-#
-# Enabled categories: bugprone, modernize, performance, readability,
-# portability, misc, clang-analyzer, concurrency, cppcoreguidelines, cert,
-# hicpp, abseil, google, llvm, fuchsia.
-# Disabled categories: android, zircon, mpi, openmp, cuda, hip, altera,
-# llvm-libc, llvmlibc, objc, google-objc, abseil-android, abseil-fuchsia,
-# abseil-google, abseil-upstream, cert-android, cert-fuchsia, hicpp-android,
-# hicpp-fuchsia, linuxkernel, fuchsia-* (individual).
-#
-# Reference: https://clang.llvm.org/extra/clang-tidy/checks/list.html
-
 Checks: >
   -*,
   bugprone-*,
-  modernize-*,
-  performance-*,
-  readability-*,
-  portability-*,
-  misc-*,
+  cert-*,
   clang-analyzer-*,
   concurrency-*,
   cppcoreguidelines-*,
-  cert-*,
   hicpp-*,
-  abseil-*,
-  google-*,
-  llvm-*,
-  fuchsia-*,
-  -android-*,
-  -zircon-*,
-  -mpi-*,
-  -openmp-*,
-  -cuda-*,
-  -hip-*,
-  -altera-*,
-  -llvm-libc-*,
-  -llvmlibc-*,
-  -objc-*,
-  -google-objc-*,
-  -abseil-android-*,
-  -abseil-fuchsia-*,
-  -abseil-google-*,
-  -abseil-upstream-*,
-  -cert-android-*,
-  -cert-fuchsia-*,
-  -hicpp-android-*,
-  -hicpp-fuchsia-*,
-  -linuxkernel-*,
-  -fuchsia-default-arguments-calls,
-  -fuchsia-default-arguments-declarations,
-  -fuchsia-header-anon-namespaces,
-  -fuchsia-multiple-inheritance,
-  -fuchsia-overloaded-operator,
-  -fuchsia-statically-constructed-objects,
-  -fuchsia-trailing-return,
-  -fuchsia-virtual-inheritance,
-  -bugprone-suspicious-include,
-  -bugprone-reserved-identifier,
-  -bugprone-easily-swappable-parameters,
-  -bugprone-exception-escape,
-  -bugprone-throwing-static-initialization,
-  -cert-err58-cpp,
-  -cppcoreguidelines-avoid-magic-numbers,
-  -cppcoreguidelines-avoid-non-const-global-variables,
-  -google-readability-todo,
-  -google-runtime-int,
-  -hicpp-uppercase-literal-suffix,
-  -hicpp-use-auto,
-  -misc-include-cleaner,
+  misc-*,
+  modernize-*,
   -modernize-use-trailing-return-type,
-  -modernize-avoid-c-arrays,
-  -modernize-avoid-bind,
-  -performance-unnecessary-value-param,
+  performance-*,
+  portability-*,
   -portability-avoid-pragma-once,
-  -readability-implicit-bool-conversion,
-  -readability-isolate-declaration,
-  -readability-named-parameter,
-  -readability-function-cognitive-complexity,
-  -readability-function-size,
-  -hicpp-function-size,
-  -google-readability-function-size,
-  -llvm-header-guard,
-  -llvm-include-order,
-  -concurrency-mt-unsafe,
-
-# --- Custom options ---
-CheckOptions:
-  # Magic numbers: ignore common small values
-  readability-magic-numbers.IgnoredIntegerValues: "0;1;2;3;4;8;16;32;64;128;256;512;1024;2048;4096;8192;16384;32768;65536;-1;-2"
-
-  # Naming conventions
-  readability-identifier-naming.ClassCase: CamelCase
-  readability-identifier-naming.StructCase: CamelCase
-  readability-identifier-naming.UnionCase: CamelCase
-  readability-identifier-naming.FunctionCase: camelBack
-  readability-identifier-naming.VariableCase: camelBack
-  readability-identifier-naming.ParameterCase: camelBack
-  readability-identifier-naming.ConstantCase: UPPER_CASE
-  readability-identifier-naming.ConstantPrefix: 'k'
-  readability-identifier-naming.EnumCase: CamelCase
-  readability-identifier-naming.EnumeratorCase: UPPER_CASE
-  readability-identifier-naming.PrivateMemberCase: camelBack
-  readability-identifier-naming.PrivateMemberPrefix: 'm_'
-  readability-identifier-naming.ProtectedMemberCase: camelBack
-  readability-identifier-naming.ProtectedMemberPrefix: 'm_'
-  readability-identifier-naming.NamespaceCase: lower_case
-  readability-identifier-naming.MacroCase: UPPER_CASE
-  readability-identifier-naming.HeaderGuardCase: UPPER_CASE
-  readability-identifier-naming.GlobalVariableCase: UPPER_CASE
-  readability-identifier-naming.GlobalVariablePrefix: 'g_'
-  readability-identifier-naming.StaticVariableCase: UPPER_CASE
-  readability-identifier-naming.StaticVariablePrefix: 's_'
-  readability-identifier-naming.TypeAliasCase: CamelCase
-  readability-identifier-naming.TypedefCase: CamelCase
-
-  # Modernize
-  modernize-use-auto.MinTypeNameLength: 5
-  modernize-loop-convert.MinConfidence: safe
-
-# All warnings are treated as errors
+  readability-*
 WarningsAsErrors: '*'
-
-# Use the project .clang-format file
+HeaderFilterRegex: '.*'
 FormatStyle: file
