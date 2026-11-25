@@ -4,10 +4,6 @@
 #include <datadog/version.h>
 #include <gtest/gtest.h>
 
-TEST(DatadogctlTest, VersionIsNotEmpty) {
-	EXPECT_FALSE(datadog::kVERSION.empty());
-}
+TEST(DatadogctlTest, VersionIsNotEmpty) { EXPECT_FALSE(datadog::kVERSION.empty()); }
 
-TEST(DatadogctlTest, VersionHasContent) {
-	EXPECT_GT(datadog::kVERSION.size(), 0U);
-}
+TEST(DatadogctlTest, VersionHasContent) { EXPECT_GT(datadog::kVERSION.size(), 0U); }

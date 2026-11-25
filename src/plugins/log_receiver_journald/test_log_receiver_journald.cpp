@@ -6,10 +6,6 @@
 // Declare the exported symbol from the shared library.
 extern "C" const std::string_view kVERSION;
 
-TEST(LogReceiverJournaldTest, VersionIsNotEmpty) {
-	EXPECT_FALSE(kVERSION.empty());
-}
+TEST(LogReceiverJournaldTest, VersionIsNotEmpty) { EXPECT_FALSE(kVERSION.empty()); }
 
-TEST(LogReceiverJournaldTest, VersionHasContent) {
-	EXPECT_GT(kVERSION.size(), 0U);
-}
+TEST(LogReceiverJournaldTest, VersionHasContent) { EXPECT_GT(kVERSION.size(), 0U); }

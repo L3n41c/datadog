@@ -58,6 +58,10 @@ cmake --workflow --preset dev
 |-------------|-------------|
 | `dev`        | Debug build with AddressSanitizer + UndefinedBehaviorSanitizer |
 | `dev-tsan`   | Debug build with ThreadSanitizer (data race detection) |
+| `dev-msan`   | Debug build with MemorySanitizer smoke tests; system libstdc++ is uninstrumented, so standard-library issues may be missed and false positives are possible |
+| `dev-cfi`    | Debug build with Clang Control Flow Integrity |
+| `dev-safestack` | Debug build with Clang SafeStack protection |
+| `dev-scudo`  | Debug build with Clang's hardened Scudo allocator |
 | `release`    | Optimized release build with LTO |
 | `coverage`   | Debug build with code coverage instrumentation (llvm-cov / gcov) |
 | `fuzzer`     | Build with libFuzzer for fuzz testing |
