@@ -1,3 +1,7 @@
+# Created by https://www.toptal.com/developers/gitignore/api/c++,cmake,doxygen,gcov,vcpkg
+# Edit at https://www.toptal.com/developers/gitignore?templates=c++,cmake,doxygen,gcov,vcpkg
+
+### C++ ###
 # Prerequisites
 *.d
 
@@ -11,17 +15,10 @@
 *.gch
 *.pch
 
-# Linker files
-*.ilk
-
-# Debugger Files
-*.pdb
-
 # Compiled Dynamic libraries
 *.so
 *.dylib
 *.dll
-*.so.*
 
 # Fortran module files
 *.mod
@@ -38,60 +35,44 @@
 *.out
 *.app
 
-# Build directories
-build/
-Build/
-build-*/
-
-# CMake generated files
-CMakeFiles/
+### CMake ###
+CMakeLists.txt.user
 CMakeCache.txt
-cmake_install.cmake
+CMakeFiles
+CMakeScripts
+Testing
 Makefile
+cmake_install.cmake
 install_manifest.txt
 compile_commands.json
+CTestTestfile.cmake
+_deps
 
-# Temporary files
-*.tmp
-*.log
-*.bak
-*.swp
+### CMake Patch ###
+CMakeUserPresets.json
 
-# vcpkg
+# External projects
+*-prefix/
+
+### Doxygen ###
+html
+latex
+
+### Gcov ###
+# gcc coverage testing tool files
+
+*.gcno
+*.gcda
+*.gcov
+
+### vcpkg ###
+# Vcpkg
+
+vcpkg-manifest-install.log
+
+## Manifest Mode
 vcpkg_installed/
 
-# debug information files
-*.dwo
+# End of https://www.toptal.com/developers/gitignore/api/c++,cmake,doxygen,gcov,vcpkg
 
-# test output & cache
-Testing/
-.cache/
-
-# Coverage reports
-*.profraw
-*.profdata
-coverage/
-coverage.info
-
-# Fuzzing artifacts
-fuzz-*.log
-crash-*
-leak-*
-oom-*
-timeout-*
-artifact_prefix-*
-
-# Doxygen output
-docs/api/
-docs/doxygen-warnings.log
-
-# IDE files
-.idea/
-.vscode/
-*.sublime-*
-*.code-workspace
-
-# Editor swap/backup
-*~
-.#*
-\#*\#
+/build/
