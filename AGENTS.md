@@ -15,6 +15,11 @@ Agents pick this file up automatically. Mistral Vibe loads the repository-root `
 - The specifications only define the external interface of the project: the data that is read, how it is processed, formatted and sent. The internal design is free and is documented with Doxygen comments next to the implementation or in `docs/`.
 - This is a brand-new project with no users. Never keep backward compatibility with earlier versions of this codebase; the only compatibility that matters is conformance with the upstream Datadog agent specifications.
 
+## Core architecture design
+
+- The design of the core architecture (plugin system and ABI, configuration format and reflection, logging, asynchronous execution model, component manager and hot reload, IPC control plane) is documented in `docs/` — start at `docs/README.md`.
+- Every implementation session must follow these design documents. When a change alters the design, update `docs/` in the same commit so the documents always reflect the code.
+
 ## Clean code
 
 - Optimize code for human readability above everything else.
