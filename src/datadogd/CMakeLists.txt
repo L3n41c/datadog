@@ -2,6 +2,8 @@
 
 add_executable(datadogd main.cpp)
 
+target_link_libraries(datadogd PRIVATE Datadog::core)
+
 target_include_directories(datadogd PRIVATE "${CMAKE_SOURCE_DIR}/include"
                                             "${CMAKE_BINARY_DIR}/include")
 

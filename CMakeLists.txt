@@ -64,8 +64,43 @@ option(ENABLE_COVERAGE "Enable code coverage instrumentation" OFF)
 option(ENABLE_FUZZER "Enable libFuzzer targets" OFF)
 option(DATADOG_BUILD_DOCS "Build Doxygen documentation" OFF)
 
+# --- Optional libsystemd for native journald logging (doc 04) ---
+# libsystemd is a host OS library (the daemon talks to the host journald), so it comes from the
+# system package libsystemd-dev — installed explicitly in the CI workflows — not from vcpkg (its
+# libsystemd port fails to build on the CI runner images). Detected via pkg-config, then
+# find_path/find_library; controlled by DATADOG_WITH_SYSTEMD.
+option(DATADOG_WITH_SYSTEMD "Use libsystemd for native journald logging (Linux only)" ON)
+if(DATADOG_WITH_SYSTEMD
+   AND UNIX
+   AND NOT APPLE)
+    find_package(PkgConfig QUIET)
+    if(PkgConfig_FOUND)
+        pkg_check_modules(LIBSYSTEMD QUIET IMPORTED_TARGET libsystemd)
+    endif()
+    if(LIBSYSTEMD_FOUND)
+        add_library(Datadog::systemd ALIAS PkgConfig::LIBSYSTEMD)
+    else()
+        # Local build without vcpkg: system libsystemd.
+        find_path(LIBSYSTEMD_INCLUDE_DIR systemd/sd-journal.h)
+        find_library(LIBSYSTEMD_LIBRARY NAMES systemd)
+        if(LIBSYSTEMD_INCLUDE_DIR AND LIBSYSTEMD_LIBRARY)
+            add_library(Datadog::systemd INTERFACE IMPORTED)
+            set_target_properties(
+                Datadog::systemd
+                PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${LIBSYSTEMD_INCLUDE_DIR}"
+                           INTERFACE_LINK_LIBRARIES "${LIBSYSTEMD_LIBRARY}")
+        endif()
+    endif()
+    if(NOT TARGET Datadog::systemd)
+        message(WARNING "DATADOG_WITH_SYSTEMD is ON but libsystemd was not found; "
+                        "native journald logging will be disabled")
+    endif()
+endif()
+
 # --- Dependencies ---
-find_package(Boost REQUIRED)
+# Compiled Boost components; header-only ones (dll, asio, spirit, describe) come with
+# Boost::headers.
+find_package(Boost REQUIRED COMPONENTS log program_options url json)
 
 # --- Testing ---
 if(BUILD_TESTING)
@@ -109,6 +144,7 @@ endif()
 # Used below for the version_header dependency and by the 'coverage' target (cmake/Coverage.cmake)
 # as llvm-cov objects.
 set(DATADOG_ALL_TARGETS
+    datadog_core
     datadogd
     datadogctl
     host_forwarder
@@ -121,6 +157,7 @@ if(BUILD_TESTING AND DATADOG_BUILD_GTESTS)
     list(
         APPEND
         DATADOG_ALL_TARGETS
+        test_datadog_core
         test_datadogd
         test_datadogctl
         test_host_forwarder
