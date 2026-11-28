@@ -19,6 +19,7 @@ by `specs/specs`; these documents define only the internal architecture.
 1. [07 — IPC control plane and datadogctl](07-ipc-and-datadogctl.md) — socket protocol and commands.
 1. [08 — Source layout and build](08-source-layout-and-build.md) — directories, targets, dependencies.
 1. [09 — Design patterns and clean code](09-design-patterns-and-clean-code.md) — patterns used and coding rules.
+1. [10 — Implementation plan](10-implementation-plan.md) — phased plan (one branch/PR per phase) to implement this design.
 
 ## Decisions at a glance
 
