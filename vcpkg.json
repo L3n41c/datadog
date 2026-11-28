@@ -7,6 +7,12 @@
   "dependencies": [
     "boost-dll",
     "boost-asio",
+    "boost-log",
+    "boost-program-options",
+    "boost-url",
+    "boost-json",
+    "boost-spirit",
+    "boost-describe",
     "gtest",
     "benchmark"
   ]

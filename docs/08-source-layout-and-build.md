@@ -62,7 +62,7 @@ Existing: `boost-dll`, `boost-asio`, `gtest`, `benchmark`. To be added for the c
 | `boost-json` | IPC protocol (doc 07) |
 | `boost-spirit` | config grammar (header-only, doc 03) |
 | `boost-describe` | config reflection (header-only, doc 03) |
-| `libsystemd` (Linux only, behind `DATADOG_WITH_SYSTEMD`) | `sd_journal_send` native journald backend (doc 04) |
+| system `libsystemd-dev` (OS package, installed explicitly in CI workflows; detected via pkg-config then `find_library`; behind `DATADOG_WITH_SYSTEMD`) — not a vcpkg port: the vcpkg `libsystemd` port fails to build on the CI runner images (libxcrypt system requirements), and libsystemd is a host library anyway | `sd_journal_send` native journald backend (doc 04) |
 
 `boost-property-tree` is only needed if we add the INI/JSON fallback parser; not required by the
 primary design.
